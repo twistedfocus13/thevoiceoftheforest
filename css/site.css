@@ -3750,3 +3750,39 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .cv-s2bang { position: absolute; left: 50%; top: 50%; z-index: 5; transform: translate(-50%, 0) scale(0); font-family: var(--pix); font-weight: 900; font-size: 20px; color: #ffe07a; -webkit-text-stroke: 1px #6b2a3a; text-shadow: 0 0 8px #ff8a3a; pointer-events: none; white-space: nowrap; }
 .cv-s2bang.go { animation: cv-bang .9s ease-out forwards; } @keyframes cv-bang { 0% { transform: translate(-50%, 0) scale(.3) rotate(-10deg); opacity: 1; } 25% { transform: translate(-50%, -12px) scale(1.25) rotate(4deg); opacity: 1; } 100% { transform: translate(-50%, -30px) scale(1); opacity: 0; } }
 .cv-s2say { margin: 8px 0; text-align: center; min-height: 1.3em; }
+
+/* her ask 11-15: Prize Booth decoys sit still and look like real prizes (lit display stand + price tag) */
+.pb-dz, .pb-props i, .pb-props .mw-pz, .mw-pbooth .mw-pz { animation: none !important; }
+.pb-item.decoy { pointer-events: auto; cursor: pointer; opacity: 1; }
+.pb-case { position: relative; display: flex; align-items: flex-end; justify-content: center; width: 50px; height: 54px; margin-bottom: 2px; }
+.pb-case::before { content: ''; position: absolute; left: 4px; right: 4px; bottom: 0; height: 7px; border-radius: 3px; background: linear-gradient(#e2b04a, #8a5a1a); box-shadow: 0 2px 0 #4a2a0a; }
+.pb-case::after { content: ''; position: absolute; left: 50%; bottom: 4px; width: 46px; height: 40px; transform: translateX(-50%); background: radial-gradient(ellipse at 50% 100%, rgba(255, 236, 160, .35), transparent 70%); pointer-events: none; }
+.pb-case .pb-dz { position: relative; z-index: 1; margin: 0 0 7px; }
+.pb-item.decoy .pb-price { background: #f6eedf; color: #6b2a3a; letter-spacing: 0; }
+/* the trade: tickets fly to Mr. Mime, Mime Jr. brings the prize */
+.pb-fly { position: absolute; left: 0; top: 0; z-index: 8; pointer-events: none; font-size: 22px; line-height: 1; white-space: nowrap; filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .55)); }
+.pb-flytix i { display: inline-block; font-style: normal; margin: 0 -5px; } .pb-flytix i:nth-child(2) { transform: rotate(-12deg) translateY(-3px); } .pb-flytix i:nth-child(3) { transform: rotate(10deg); }
+.pb-gift img { max-width: 46px; max-height: 46px; image-rendering: pixelated; display: block; }
+.pb-gift { padding: 4px; border-radius: 10px; background: radial-gradient(circle, rgba(255, 236, 160, .5), transparent 70%); }
+.pb-gasp { font-size: 26px; } .pb-spark { font-size: 26px; }
+.pb-jr.wow { animation: pb-wow 1.4s ease-in-out; } @keyframes pb-wow { 0%, 100% { transform: none; } 12% { transform: translateY(-26px) scale(1.12); } 24% { transform: translateY(0) scale(.95, 1.05); } 34%, 54%, 74% { transform: rotate(-9deg); } 44%, 64%, 84% { transform: rotate(9deg); } }
+.pb-jr.heave { animation: pb-heave .5s ease-in-out infinite alternate; } @keyframes pb-heave { from { transform: translateY(0) rotate(-6deg) scaleY(.94); } to { transform: translateY(-6px) rotate(6deg) scaleY(1.04); } }
+.pb-jr.puff { animation: pb-puff .6s ease-in-out 2; } @keyframes pb-puff { 50% { transform: scale(1.08, .92); } }
+/* her ask 11-15: the Prize Booth stall on the midway (Mr. Mime's speech bubble, Mime Jr. patrolling) */
+.mw-pbooth { height: 168px; }
+.mw-pbooth .mw-back { height: 138px; background: linear-gradient(#4a1f6a, #2a124a); }
+.mw-pbrow { position: absolute; left: 6px; right: 6px; display: flex; justify-content: space-around; align-items: flex-end; top: 62px; height: 30px; border-bottom: 4px solid #a8723a; }
+.mw-pbrow.t { top: 18px; }
+.mw-pbcase { position: relative; display: flex; align-items: flex-end; padding: 0 2px 1px; }
+.mw-pbcase::after { content: ''; position: absolute; left: -2px; right: -2px; bottom: -2px; height: 12px; background: radial-gradient(ellipse at 50% 100%, rgba(255, 236, 160, .45), transparent 70%); }
+.mw-pbooth .mw-host { bottom: 38px; }
+.mw-pbooth .mw-price { font-size: 11px; }
+.mw-mimesay { position: absolute; left: 50%; bottom: 182px; transform: translateX(-50%); width: 190px; padding: 5px 8px; border-radius: 12px; background: #fff8ea; color: #3a2a1a; font-size: 11px; line-height: 1.25; font-weight: 600; text-align: center; box-shadow: 0 2px 0 #b07a3a, 0 4px 10px rgba(0, 0, 0, .45); z-index: 6; pointer-events: none; transition: opacity .25s; white-space: normal; }
+.mw-mimesay::after { content: ''; position: absolute; left: 50%; bottom: -10px; margin-left: -6px; border: 6px solid transparent; border-top-color: #fff8ea; }
+.mw-mimesay.swap { opacity: 0; }
+.mw-jr { position: absolute; left: 50%; bottom: -14px; z-index: 5; display: flex; align-items: flex-end; pointer-events: none; transform: translateX(-50%); filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .5)); }
+/* 11-15 fix: the midway scene clips anything above the sign, so Mr. Mime's bubble sits beside his head over the back wall */
+.mw-mimesay { left: auto; right: 4px; bottom: 92px; transform: none; width: 112px; font-size: 10px; padding: 4px 6px; }
+.mw-mimesay::after { left: 10px; margin-left: 0; bottom: -9px; border-top-color: #fff8ea; transform: skewX(30deg); }
+.pb-gift .cv-pz-cur { transform: scale(1.7); margin: 10px; }
+.mw-pbooth { z-index: 4; }

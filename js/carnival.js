@@ -5,16 +5,16 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af906dc';
-import { $, $$, esc, toast, num } from './util.js?v=6af906dc';
-import { me, logRoll } from './play.js?v=6af906dc';
-import { markWinner } from './sparkle.js?v=6af906dc';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af906dc';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af906dc';
-import { DECOR } from './basedecor.js?v=6af906dc';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af906dc';
-import { REWARD_CURSORS } from './digcursor.js?v=6af906dc';
-import { midwayHTML, mountMidway } from './midway.js?v=6af906dc';
+import * as store from './store.js?v=6af9b7bd';
+import { $, $$, esc, toast, num } from './util.js?v=6af9b7bd';
+import { me, logRoll } from './play.js?v=6af9b7bd';
+import { markWinner } from './sparkle.js?v=6af9b7bd';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af9b7bd';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af9b7bd';
+import { DECOR } from './basedecor.js?v=6af9b7bd';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af9b7bd';
+import { REWARD_CURSORS } from './digcursor.js?v=6af9b7bd';
+import { midwayHTML, mountMidway } from './midway.js?v=6af9b7bd';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -64,7 +64,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af906dc').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af9b7bd').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -432,8 +432,16 @@ const PRIZES = () => (prizeCache ||= [
 const DECOYS = [['ted', 'Giant Teddiursa Plush', 'Mime Jr. naps on that one every night. Not for trade!'], ['gem', 'Glittering Star Shard', 'Shiny, isn’t it? Only for show, I’m afraid!'],
   ['bal', 'Never-Pop Balloon', 'A trick balloon! It’s glued to the shelf. Hehe!'], ['gift', 'Mystery Box', 'Nobody knows what’s inside… not even me! Not for trade.'],
   ['star', 'Golden Star Trophy', 'That’s the booth’s own trophy. Just for show!'], ['bow', 'Giant Ribbon', 'That’s Mime Jr.’s best bow! Paws off!'], ['yo', 'Barrier Yo-yo', 'My invisible-wall yo-yo! Mime-mime, not for sale!']];
+// her ask 11-15 "When I say distractor I don't want it to move. I want it to look like it could've been a serious thing to
+// buy": decoys sit still on a lit display stand with a real price tag, and Mr. Mime describes them like real prizes; only
+// trying to trade one gives it away
+const DECOY_SELL = { ted: [600, 'Our grand prize! Soft as a cloud and bigger than Mime Jr.!'], gem: [450, 'A real shard from a falling star. It glows in the dark!'],
+  bal: [180, 'A balloon that never pops and never floats away!'], gift: [300, 'What’s inside? Something wonderful, I promise!'],
+  star: [750, 'Solid gold, polished every morning. The finest prize in the whole carnival!'], bow: [220, 'Silk ribbon, big enough to wrap a Snorlax!'], yo: [260, 'It bounces off invisible walls! Mime-mime!'] };
 const withDecoys = (list, tab) => { const off = PRIZE_TABS.findIndex(([k]) => k === tab) * 2; const out = []; let d = 0;
-  list.forEach((p, i) => { out.push(p); if (i % 3 === (list.length < 4 ? 0 : 1)) { const [art, name, line] = DECOYS[(off + d++) % DECOYS.length]; out.push({ decoy: true, art, name, line }); } }); return out; };
+  list.forEach((p, i) => { out.push(p); if (i % 3 === (list.length < 4 ? 0 : 1)) { const [art, name, line] = DECOYS[(off + d++) % DECOYS.length]; const [price, desc] = DECOY_SELL[art] || [300, '']; out.push({ decoy: true, art, name, line, price, desc }); } }); return out; };
+// her ask 11-15 "Make mime jr have a reaction if it is a huge prize"
+const HUGE = 150;
 const PRIZE_TABS = [['decor', '🏠 For your base'], ['cursor', '🖱️ Cursors'], ['theme', '🎨 Themes'], ['dice', '🎲 Dice']];
 const owns = (c, p) => (p.kind === 'cursor' ? (c.cursors || []).includes(p.k) : p.kind === 'theme' ? (c.themes || []).includes(p.k) : p.kind === 'dice' ? (c.dice || []).includes(p.k) : false);
 const ownedDecor = (id, k) => num(store.get(`base/${id}/owned/${k}`));
@@ -540,7 +548,7 @@ export function renderCarnival(main, g, gm, onEdit) {
   const ed = $('#ed', main); if (ed) ed.onclick = onEdit;
   const scene = $('#cvscene', main); const panel = $('#cvpanel', main); const talk = $('#cvtalk', main);
   // her ask 11-12: a busy midway you walk around; tapping a booth / ride / stand (or its pop-up) opens it
-  const mw = mountMidway(scene, { GAMES, RIDES, SNACKS, GAME_COST }, (kind, k) => { if (!c) { say(mime('Pick your character on the home page first, then come play!')); return; } if (kind === 'game') playGame(k); else if (kind === 'ride') ride(k); else snack(k); }, (d) => budRow(scene, d || 'idle'));
+  const mw = mountMidway(scene, { GAMES, RIDES, SNACKS, GAME_COST }, (kind, k) => { if (!c) { say(mime('Pick your character on the home page first, then come play!')); return; } if (kind === 'prize') { tab = 'prizes'; buying = null; tabs(); draw(); say(mime('Welcome to my Prize Booth! Have a look at the shelves!')); panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; } if (kind === 'game') playGame(k); else if (kind === 'ride') ride(k); else snack(k); }, (d) => budRow(scene, d || 'idle'));
   fillPair(scene, c, 'right', 2).then(() => mw.refaceMe());
   spriteInto($('.cv-jirachi', scene), 'Jirachi', 1.5, 'down', true);
   const hopTimer = setInterval(() => { if (!scene.isConnected) { clearInterval(hopTimer); return; } budRow(scene, 'hop', false); setTimeout(() => budRow(scene, 'idle'), 1300); }, 9000);
@@ -595,12 +603,12 @@ export function renderCarnival(main, g, gm, onEdit) {
     const meC = c ? party()[c.id] || c : null; const free = c && !!rec(c.id).freePrize; const tix = c ? (free ? Infinity : ticketsOf(c.id)) : 0;
     const list = withDecoys(PRIZES().filter((p) => p.kind === prizeTab), prizeTab);
     const tabName = (PRIZE_TABS.find(([k]) => k === prizeTab) || [])[1] || '';
-    const lineFor = (p) => { if (p.decoy) return `The ${p.name}? ${p.line}`; const have = meC && owns(meC, p); return have ? `The ${p.name}? You already have that one! Mime-mime!` : `Ooh, the ${p.name}! ${p.desc || ''} Only ${p.price} tickets!`; };
+    const lineFor = (p) => { if (p.decoy) return `Ooh, the ${p.name}! ${p.desc} Only ${p.price} tickets!`; const have = meC && owns(meC, p); return have ? `The ${p.name}? You already have that one! Mime-mime!` : `Ooh, the ${p.name}! ${p.desc || ''} Only ${p.price} tickets!`; };
     panel.innerHTML = `<div class="pb-booth">
       <div class="pb-sign"><span class="pb-bulbs"></span>🎁 PRIZE BOOTH 🎁<span class="pb-bulbs b"></span></div><div class="pb-awn"></div>
       <div class="pb-tabs">${PRIZE_TABS.map(([k, l]) => `<button class="pb-tab ${k === prizeTab ? 'on' : ''}" data-pt="${k}">${l}</button>`).join('')}</div>
       <div class="pb-wall pb-${prizeTab}"><span class="pb-section">${esc(tabName)}</span>
-        <div class="pb-shelf">${list.map((p, i) => { if (p.decoy) return `<span class="pb-item decoy" aria-hidden="true"><i class="mw-pz ${p.art} pb-dz"></i></span>`; const have = meC && owns(meC, p); const n = meC && p.kind === 'decor' ? ownedDecor(c.id, p.k) : 0;
+        <div class="pb-shelf">${list.map((p, i) => { if (p.decoy) return `<button class="pb-item decoy" data-pz="${i}" ${!c ? 'disabled' : ''} aria-label="${esc(p.name)}, ${p.price} tickets"><span class="pb-case"><i class="mw-pz ${p.art} pb-dz"></i></span><span class="pb-price">🎟️${p.price}</span></button>`; const have = meC && owns(meC, p); const n = meC && p.kind === 'decor' ? ownedDecor(c.id, p.k) : 0;
           return `<button class="pb-item ${buying === p ? 'on' : ''} ${have ? 'have' : ''}" data-pz="${i}" ${!c ? 'disabled' : ''} aria-label="${esc(p.name)}, ${p.price} tickets">${prizeArt(p)}<span class="pb-price">${have ? '✓' : `🎟️${p.price}`}</span>${n ? `<span class="pb-have">×${n}</span>` : ''}</button>`; }).join('')}</div>
         <div class="pb-stage"><div class="pb-props">${[...DECOYS, ...DECOYS.slice().reverse()].map(([art]) => `<i class="mw-pz ${art}"></i>`).join('')}</div>
           <span class="pb-mime"></span><span class="pb-jr"></span>
@@ -629,10 +637,58 @@ export function renderCarnival(main, g, gm, onEdit) {
       const p = buying; const fr = !!rec(c.id).freePrize; if (!p || (!fr && ticketsOf(c.id) < p.price)) { toast('Not enough tickets for that one yet.'); return; }
       if (fr) store.set('carnival/' + c.id, { ...rec(c.id), freePrize: false }); else addTickets(c.id, -p.price); grant(c, p);
       store.pushLimited('log', { t: Date.now(), text: fr ? `🌟 ${c.nickname} used Jirachi’s wish for the ${p.name}!` : `🎪 ${c.nickname} traded ${p.price} carnival tickets for the ${p.name}!` });
-      toast(`🎉 The ${p.name} is yours! ${where(p)}`); markWinner(c.id); jingle(true); buying = null; drawPrizes(); showTix();
-      const j = $('.pb-jr', panel); j?.classList.add('give'); const s2 = $('#pbsay', panel); if (s2) s2.textContent = `Congratulations! Mime Jr., wrap up the ${p.name}! Enjoy it!`;
-      say(mime(`Congratulations! Enjoy your ${p.name}!`));
+      markWinner(c.id); showTix();
+      tradeAnim(p, fr, () => { toast(`🎉 The ${p.name} is yours! ${where(p)}`); jingle(true); buying = null; drawPrizes(); showTix();
+        const s2 = $('#pbsay', panel); if (s2) s2.textContent = p.price >= HUGE ? `What a prize! The ${p.name} is all yours. Mime-mime!` : `Congratulations! Enjoy your ${p.name}!`;
+        say(mime(p.price >= HUGE ? `A huge prize! Mime Jr. is still out of breath. Enjoy your ${p.name}!` : `Congratulations! Enjoy your ${p.name}!`)); });
     };
+  }
+
+  // her ask 11-15 "when you're at the booth have an animation of handing over the tickets and mime jr giving you the
+  // prize. Make mime jr have a reaction if it is a huge prize": your tickets fly from the counter to Mr. Mime, Mime Jr.
+  // pops up holding the prize and carries it down to you; a huge prize (HUGE+ tickets) makes Mime Jr. gasp, jump and
+  // stagger under the weight with sparkles
+  function tradeAnim(p, fr, done) {
+    const booth = $('.pb-booth', panel); const mimeEl = $('.pb-mime', panel); const jr = $('.pb-jr', panel); const front = $('.pb-front', panel); const sayEl = $('#pbsay', panel);
+    if (!booth || !mimeEl || !jr || !front || !booth.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) { done(); return; }
+    $$('button', booth).forEach((b) => { b.disabled = true; }); jr.classList.remove('look', 'give', 'nope');
+    const huge = p.price >= HUGE; const B = booth.getBoundingClientRect();
+    const at = (el, fy = 0.5) => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2 - B.left, r.top + r.height * fy - B.top]; };
+    const [fx, fy] = at(front, 0.35); const [mx, my] = at(mimeEl, 0.5); const [jx, jy] = at(jr, 0.2);
+    const T = (x, y, s = 1) => `translate(${x.toFixed(0)}px, ${y.toFixed(0)}px) translate(-50%, -50%) scale(${s})`;
+    const add = (cls, html) => { const e = document.createElement('span'); e.className = cls; e.innerHTML = html; booth.appendChild(e); return e; };
+    const wait = (ms) => new Promise((ok) => setTimeout(ok, ms));
+    (async () => {
+      if (sayEl) sayEl.textContent = fr ? 'Jirachi’s wish? Mime-mime, how wonderful!' : `${p.price} tickets? Thank you kindly!`;
+      // 1. the tickets go over the counter to Mr. Mime
+      const tix = add('pb-fly pb-flytix', fr ? '🌟' : '<i>🎟️</i><i>🎟️</i><i>🎟️</i>');
+      await tix.animate([{ transform: T(fx, fy, 0.6), opacity: 0 }, { transform: T(fx, fy - 10, 1), opacity: 1, offset: 0.15 }, { transform: T((fx + mx) / 2, Math.min(fy, my) - 70, 1.1), offset: 0.55 }, { transform: T(mx, my, 0.7), opacity: 1, offset: 0.9 }, { transform: T(mx, my, 0.3), opacity: 0 }], { duration: 1100, easing: 'ease-in-out' }).finished.catch(() => {});
+      tix.remove(); mimeEl.animate([{ transform: 'none' }, { transform: 'translateY(-8px)' }, { transform: 'none' }], { duration: 400 });
+      if (sayEl) sayEl.textContent = `Mime Jr., the ${p.name}, please!`;
+      await wait(350);
+      // 2. Mime Jr. pops up with the prize (a huge one gets a gasp and a jump first)
+      if (huge) {
+        jr.classList.add('wow'); const gasp = add('pb-fly pb-gasp', '❗❗'); const pop = add('pb-fly pb-spark', '✨🎉✨');
+        gasp.animate([{ transform: T(jx, jy - 40, 0.2), opacity: 0 }, { transform: T(jx, jy - 54, 1.3), opacity: 1, offset: 0.3 }, { transform: T(jx, jy - 50, 1), opacity: 1, offset: 0.85 }, { transform: T(jx, jy - 50, 1), opacity: 0 }], { duration: 1400 });
+        pop.animate([{ transform: T(jx, jy, 0.3), opacity: 0 }, { transform: T(jx, jy - 20, 1.6), opacity: 1, offset: 0.4 }, { transform: T(jx, jy - 30, 2), opacity: 0 }], { duration: 1400 });
+        if (sayEl) sayEl.textContent = 'A HUGE prize! Look at Mime Jr.’s face! Mime-mime!';
+        await wait(1400); gasp.remove(); pop.remove(); jr.classList.remove('wow');
+      }
+      const gift = add(`pb-fly pb-gift ${huge ? 'big' : ''}`, prizeArt(p));
+      jr.classList.add(huge ? 'heave' : 'give');
+      await gift.animate([{ transform: T(jx, jy, 0.2), opacity: 0 }, { transform: T(jx, jy - 26, huge ? 1.7 : 1.5), opacity: 1 }], { duration: 450, easing: 'ease-out', fill: 'forwards' }).finished.catch(() => {});
+      await wait(huge ? 500 : 250);
+      // 3. ...and carries it down to you at the counter (a huge prize wobbles on the way)
+      const s = huge ? 1.7 : 1.5; const mid = [(jx + fx) / 2, Math.min(jy, fy) - (huge ? 30 : 60)];
+      await gift.animate(huge
+        ? [{ transform: T(jx, jy - 26, s) }, { transform: T(jx + (mid[0] - jx) * 0.5, mid[1] + 10, s) + ' rotate(-10deg)', offset: 0.3 }, { transform: T(mid[0], mid[1], s) + ' rotate(9deg)', offset: 0.55 }, { transform: T(fx, fy - 30, s) + ' rotate(-6deg)', offset: 0.8 }, { transform: T(fx, fy - 18, s) }]
+        : [{ transform: T(jx, jy - 26, s) }, { transform: T(mid[0], mid[1], s), offset: 0.5 }, { transform: T(fx, fy - 18, s) }], { duration: huge ? 1700 : 1000, easing: 'ease-in-out', fill: 'forwards' }).finished.catch(() => {});
+      jr.classList.remove('give', 'heave'); if (huge) jr.classList.add('puff');
+      const shine = add('pb-fly pb-spark', '✨'); shine.animate([{ transform: T(fx, fy - 30, 0.4), opacity: 0 }, { transform: T(fx, fy - 40, 1.4), opacity: 1 }, { transform: T(fx, fy - 46, 1.8), opacity: 0 }], { duration: 700 });
+      if (sayEl) sayEl.textContent = 'Here you go! Congratulations!';
+      await wait(1100);
+      done();
+    })().catch(() => done());
   }
 
   // a booth game in the panel, then the end screen with the tickets

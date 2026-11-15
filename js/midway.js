@@ -4,11 +4,11 @@
 // (Ferris wheel, big top, carousel, tea cups, a running coaster, the funhouse), the snack stands, lamp posts with
 // string lights, and a crowd of Pokémon wandering about. Walk with the arrow buttons, the keyboard or by tapping a spot;
 // stand by a booth or ride and tap the pop-up (or tap the booth itself) to play / ride / buy.
-const fz = () => import('./fzscene.js?v=6af906dc').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af9b7bd').catch(() => null);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 const P = (k) => `assets/portraits/${k}.png`;
 const ROW = { right: 2, left: 6 };
-export const MW_W = 3120;          // world width in px
+export const MW_W = 3470;          // world width in px (her ask 11-15: the Prize Booth stands at the far end)
 const FAR = 0.35;                   // far skyline moves at this share of the camera
 const CROWD = ['Bidoof', 'Pachirisu', 'Buneary', 'Shinx', 'Starly', 'Chimchar', 'Piplup', 'Turtwig', 'Eevee', 'Azurill', 'Skitty', 'Teddiursa',
   'Phanpy', 'Marill', 'Meowth', 'Psyduck', 'Oddish', 'Mareep', 'Togepi', 'Sentret', 'Cyndaquil', 'Totodile', 'Chikorita', 'Treecko', 'Torchic',
@@ -137,6 +137,25 @@ function stand(x, k, S) {
     <span class="mw-awn"></span>${flags('snack:' + k)}<span class="mw-sign">${esc(S.name)}${bulbs(Math.round(w / 14), w - 16, -5, 'sm')}</span></button>`;
 }
 
+// her ask 11-15 "be able to walk to it in the carnival where Mr. Mime says things in speech bubbles and Mime Jr.
+// patrols around the booth": a big prize stall at the end of the midway; prizes sit still on lit shelves (no bobbing),
+// Mr. Mime behind the counter talks in a speech bubble, Mime Jr. walks back and forth in front of it
+export const MIME_LINES = ['Step right up! Every winner takes home a prize!', 'Mime-mime! Trade your tickets right here!',
+  'Ooh, a new face! Have a look at the shelves!', 'Mime Jr., no napping on the prizes!', 'The Golden Star Trophy? Ah, it does sparkle, doesn’t it…',
+  'Base pieces, cursors, themes and dice! Something for everyone!', 'Psst… the best prizes are on the top shelf.', 'Mime Jr., keep an eye on that Mystery Box!',
+  'Win big at the booths, then come see me!', 'Mime-mime! Careful, the glass cases are freshly polished!'];
+function prizeBooth(x) {
+  const w = 230; const shelf = (a) => a.map((p) => `<span class="mw-pbcase"><i class="mw-pz ${p}"></i></span>`).join('');
+  return `<button class="mw-spot mw-booth mw-pbooth" data-spot="prize:booth" data-x="${x}" style="left:${x - w / 2}px;width:${w}px;--a:#7a3ad6;--b:#ffe07a" aria-label="Prize Booth">
+    <span class="mw-bpost l"></span><span class="mw-bpost r"></span>
+    <span class="mw-back"><span class="mw-pbrow t">${shelf(['star', 'ted', 'gem', 'ted', 'gift'])}</span><span class="mw-pbrow">${shelf(['bow', 'yo', 'bal', 'gift', 'star', 'gem'])}</span></span>
+    <span class="mw-host" data-sp="Mr. Mime"></span>
+    <span class="mw-counter"><span class="mw-ctop"></span><span class="mw-price">🎟️ Tickets here</span></span>
+    <span class="mw-awn"></span><span class="mw-flag l"><b>🎁</b></span><span class="mw-flag r"><b>🎁</b></span>
+    <span class="mw-sign">🎁 PRIZE BOOTH 🎁${bulbs(16, w - 16, -5, 'sm')}</span>
+    <span class="mw-mimesay" aria-live="polite">${esc(MIME_LINES[0])}</span><span class="mw-jr"></span></button>`;
+}
+
 function arch(x) {
   return `<div class="mw-arch" style="left:${x - 110}px"><span class="mw-apost l"></span><span class="mw-apost r"></span><span class="mw-asign">⭐ STAR CARNIVAL ⭐${bulbs(16, 204, -6)}${bulbs(16, 204, 30)}</span></div>`;
 }
@@ -191,6 +210,7 @@ export function midwayHTML(pair, SNACKS) {
     stand(2510, 'puff', SNACKS.puff),
     coaster(2760),
     funhouse(2995),
+    prizeBooth(3300),
   ].join('');
   return `<div class="mw-far"></div>
     <div class="mw-world" style="width:${MW_W}px"><div class="mw-ground"></div>${lampsHTML(MW_W)}${world}
@@ -199,7 +219,7 @@ export function midwayHTML(pair, SNACKS) {
     <div class="mw-hint">◀ ▶ to walk around · tap a booth or ride</div>`;
 }
 
-const LABEL = (kind, key, D) => kind === 'game' ? `${D.GAMES[key].icon} Play ${D.GAMES[key].name}${D.GAME_COST?.[key] ? ` (💰${D.GAME_COST[key]})` : ''}` : kind === 'ride' ? `🎟️${D.RIDES[key].cost} Ride the ${D.RIDES[key].name}` : `🎟️${D.SNACKS[key].cost} Buy ${D.SNACKS[key].name}`;
+const LABEL = (kind, key, D) => kind === 'prize' ? '🎁 Visit the Prize Booth' : kind === 'game' ? `${D.GAMES[key].icon} Play ${D.GAMES[key].name}${D.GAME_COST?.[key] ? ` (💰${D.GAME_COST[key]})` : ''}` : kind === 'ride' ? `🎟️${D.RIDES[key].cost} Ride the ${D.RIDES[key].name}` : `🎟️${D.SNACKS[key].cost} Buy ${D.SNACKS[key].name}`;
 
 // walking, camera, the crowd and the pop-up. D = { GAMES, RIDES, SNACKS }; onSpot(kind, key); onMove(dir|null)
 export function mountMidway(scene, D, onSpot, onMove) {
@@ -226,6 +246,13 @@ export function mountMidway(scene, D, onSpot, onMove) {
     n.to = n.x + (r() - 0.5) * 600; crowd.push(n);
   }); });
   const setFace = (spr, h, f) => { if (spr) spr.style.backgroundPositionY = `-${ROW[f] * h}px`; };
+  // Prize Booth: Mime Jr. patrols in front of the counter, Mr. Mime's speech bubble changes every few seconds
+  const jrEl = world.querySelector('.mw-jr'); const sayEl = world.querySelector('.mw-mimesay');
+  const jr = { x: 0, d: 1, wait: 0, spr: null, h: 48, f: '' }; const JR_SPAN = 92;
+  if (jrEl) fz().then((m) => m?.walkSprite('Mime Jr', 1.3, 'right', false)).then((w) => { if (!w || !jrEl.isConnected) return; jrEl.innerHTML = w.html.replace('class="fzs-spr"', 'class="fzs-spr walking"'); jr.spr = jrEl.firstElementChild; jr.h = parseFloat(jr.spr.style.height) || 48; }).catch(() => {});
+  let lineI = 0;
+  const sayTimer = sayEl ? setInterval(() => { if (!sayEl.isConnected) { clearInterval(sayTimer); return; } lineI = (lineI + 1) % MIME_LINES.length;
+    sayEl.classList.add('swap'); setTimeout(() => { sayEl.textContent = MIME_LINES[lineI]; sayEl.classList.remove('swap'); }, 250); }, 4500) : 0;
   const meSpr = () => me.querySelector('.cv-char .fzs-spr');
   const show = () => {
     const cam = Math.max(0, Math.min(MW_W - vw(), x - vw() / 2));
@@ -281,6 +308,12 @@ export function mountMidway(scene, D, onSpot, onMove) {
         const nf = d > 0 ? 'right' : 'left'; if (n.f !== nf) { n.f = nf; setFace(n.spr, n.h, nf); n.spr.classList.add('walking'); }
         if (Math.abs(n.to - n.x) < 3) { n.wait = 1 + r() * 4; n.to = Math.max(60, Math.min(MW_W - 60, n.x + (r() - 0.5) * 700)); }
         n.el.style.transform = `translateX(${n.x.toFixed(1)}px)`;
+      }
+      if (jr.spr) {
+        if (jr.wait > 0) { jr.wait -= dt; if (jr.f !== 'stop') { jr.f = 'stop'; jr.spr.classList.remove('walking'); setFace(jr.spr, jr.h, 'left'); } }
+        else { jr.x += jr.d * 34 * dt; const nf = jr.d > 0 ? 'right' : 'left'; if (jr.f !== nf) { jr.f = nf; setFace(jr.spr, jr.h, nf); jr.spr.classList.add('walking'); }
+          if (Math.abs(jr.x) >= JR_SPAN) { jr.x = Math.sign(jr.x) * JR_SPAN; jr.d = -jr.d; jr.wait = 1.2 + r() * 1.5; } }
+        jrEl.style.transform = `translateX(calc(-50% + ${jr.x.toFixed(1)}px))`;
       }
       show(); reins();
     }
