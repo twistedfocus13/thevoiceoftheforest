@@ -7,15 +7,15 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6af903b5';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6af903b5';
-import { me, logRoll } from './play.js?v=6af903b5';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6af903b5';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6af903b5';
-import { markWinner } from './sparkle.js?v=6af903b5';
-import { pageMusic, visitMusic, muted, tempMusic } from './chiptune.js?v=6af903b5';
-import { modal, closeModal } from './ui.js?v=6af903b5';
-import { MIMIC } from './mimicdata.js?v=6af903b5';
+import * as store from './store.js?v=6af90492';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6af90492';
+import { me, logRoll } from './play.js?v=6af90492';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6af90492';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6af90492';
+import { markWinner } from './sparkle.js?v=6af90492';
+import { pageMusic, visitMusic, muted, tempMusic } from './chiptune.js?v=6af90492';
+import { modal, closeModal } from './ui.js?v=6af90492';
+import { MIMIC } from './mimicdata.js?v=6af90492';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -710,7 +710,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html.startsWith('<img') ? html : `<span>${html}</span>`; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6af903b5').catch(() => null);
+  const fz = import('./fzscene.js?v=6af90492').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2, 'right', false, !!c.shiny)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);
@@ -928,7 +928,7 @@ export function renderNurseryParty(main) {
         $$('.egg', main).forEach((e) => { e.classList.remove('wiggle'); void e.offsetWidth; e.classList.add('wiggle'); });
         await Promise.all(pets.map((p) => p.npAct?.('party'))); $('.np-boom', roomEl)?.remove();
       } else {
-        cap('♨️ Off to the nearest hot spring!'); roomEl.insertAdjacentHTML('beforeend', '<div class="np-spring"><i></i><i></i><i></i><i></i><b style="left:-3%;bottom:30%;--s:1.1"></b><b style="left:6%;bottom:-18%;--s:.8"></b><b style="left:22%;bottom:-30%;--s:1"></b><b style="left:42%;bottom:-36%;--s:.9"></b><b style="left:62%;bottom:-32%;--s:1.1"></b><b style="left:80%;bottom:-22%;--s:.8"></b><b style="right:-3%;bottom:28%;--s:1"></b><b style="left:10%;bottom:70%;--s:.85"></b><b style="left:34%;bottom:88%;--s:.9"></b><b style="left:58%;bottom:90%;--s:1"></b><b style="right:8%;bottom:72%;--s:.85"></b></div>');
+        cap('♨️ Off to the nearest hot spring!'); roomEl.insertAdjacentHTML('beforeend', springHTML());
         await wait(900); await Promise.all(pets.map((p) => p.npAct?.('spring'))); $('.np-spring', roomEl)?.classList.add('fade'); await wait(900); $('.np-spring', roomEl)?.remove();
       }
       cap('All done! Everyone looks happy. 💕');
@@ -957,7 +957,18 @@ function startPartyPet(roomEl, pet, b, label, idx = 0, ownerId = '') {
   const walkTo = async (tx) => { tx = Math.max(minX(), Math.min(maxX(), tx)); const d = Math.abs(tx - x); if (d < 4) return;
     row(tx > x ? 'right' : 'left'); pet.style.transition = `left ${(d / 70).toFixed(2)}s linear`; pet.style.left = tx + 'px'; x = tx; await wait(d / 70 * 1000); row('idle'); };
   pet.onclick = async () => { if (pet.npBusy) return; row('hop', false); fx('💕'); cry(b); await wait(700); row('idle'); };
-  // her ask 11-08: the group buttons (feed / play / boombox party / hot spring). Feeding, playing and bathing count as real care.
+  // her ask 11-14 "add water coming from a waterfall and steam. increase the rocks texture and variation": a rocky ledge behind
+// the pool pours a waterfall into it (foam + spray + rings where it lands), thicker rolling steam, and every rock is its own
+// kind (granite, slate, sandstone, mossy, basalt) with speckles, cracks and different shapes
+function springHTML() {
+  const rocks = [[-3, 30, 1.1], [6, -18, .8], [22, -30, 1], [42, -36, .9], [62, -32, 1.1], [80, -22, .8], [97, 28, 1], [10, 70, .85], [30, 84, .9], [64, 86, 1], [86, 72, .85]]
+    .map(([x, y, sc], k) => `<b class="rk rk${k % 5} sh${(k * 3) % 4}" style="left:${x}%;bottom:${y}%;--s:${sc}"></b>`).join('');
+  const steam = [8, 18, 28, 38, 56, 66, 76, 88].map((x, k) => `<i style="left:${x}%;--d:${(k * .45).toFixed(2)}s;--w:${k % 3 ? 1 : 1.5};--dx:${k % 2 ? 10 : -8}px"></i>`).join('');
+  const drops = [0, 1, 2, 3, 4, 5].map((k) => `<em style="--a:${-60 + k * 24}deg;--d:${(k * .13).toFixed(2)}s"></em>`).join('');
+  return `<div class="np-spring"><div class="np-cliff"><span class="np-cl np-cl1"></span><span class="np-cl np-cl2"></span><span class="np-cl np-cl3"></span><span class="np-fall"><u></u><u></u></span><span class="np-foam"></span><span class="np-spray">${drops}</span></div>${steam}<span class="np-ripple"></span><span class="np-ripple r2"></span>${rocks}</div>`;
+}
+
+// her ask 11-08: the group buttons (feed / play / boombox party / hot spring). Feeding, playing and bathing count as real care.
   const free = async (tx) => { const d = Math.abs(tx - x); if (d < 4) return; row(tx > x ? 'right' : 'left'); pet.style.transition = `left ${(d / 90).toFixed(2)}s linear`; pet.style.left = tx + 'px'; x = tx; await wait(d / 90 * 1000); row('idle'); };
   const care = (k) => { const c = (store.get('party') || {})[ownerId]; if (c && ownerId) { try { act({ ...c, id: ownerId }, k); } catch { /* fine */ } } };
   pet.npAct = async (what) => {

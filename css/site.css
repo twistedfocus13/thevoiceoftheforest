@@ -2659,14 +2659,48 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .np-boom { position: absolute; z-index: 3; left: 50%; bottom: 4px; width: 64px; translate: -50% 0; image-rendering: pixelated; }
 .np-spring { position: absolute; z-index: 1; left: 50%; bottom: 6px; width: min(420px, 70%); height: 70px; translate: -50% 0; border-radius: 50%; background: radial-gradient(ellipse at 50% 40%, #9be3ee 0%, #4bb3c9 70%, #2f8aa0 100%); border: 6px solid #8a7a66; box-shadow: 0 0 0 4px #6d5f4d, inset 0 6px 10px rgba(255, 255, 255, .35); animation: np-spring-in .8s ease-out; transition: opacity .8s; }
 .np-spring.fade { opacity: 0; }
-.np-spring i { position: absolute; bottom: 60%; width: 14px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, .55); filter: blur(5px); animation: np-steam 2.4s ease-in infinite; }
-.np-spring i:nth-child(1) { left: 20%; } .np-spring i:nth-child(2) { left: 40%; animation-delay: .6s; } .np-spring i:nth-child(3) { left: 60%; animation-delay: 1.2s; } .np-spring i:nth-child(4) { left: 78%; animation-delay: 1.8s; }
-@keyframes np-steam { from { translate: 0 0; opacity: .8; } to { translate: 6px -70px; opacity: 0; } }
+.np-spring > i { position: absolute; bottom: 55%; width: calc(18px * var(--w, 1)); height: 46px; border-radius: 50%; background: rgba(255, 255, 255, .75); filter: blur(6px); animation: np-steam 2.8s ease-in var(--d, 0s) infinite; opacity: 0; z-index: 4; pointer-events: none; }
+@keyframes np-steam { 0% { translate: 0 0; scale: .7 .8; opacity: 0; } 15% { opacity: .85; } 100% { translate: var(--dx, 6px) -95px; scale: 1.8 1.4; opacity: 0; } }
 @keyframes np-spring-in { from { opacity: 0; scale: .6; } to { opacity: 1; scale: 1; } }
 
 /* her ask 11-08: name plates sit right at the baby's feet; rocks ring the hot spring */
 .np-pet .np-tag { top: auto; }
-.np-spring b { position: absolute; width: calc(46px * var(--s, 1)); height: calc(30px * var(--s, 1)); border-radius: 48% 52% 40% 45% / 62% 60% 40% 38%; background: radial-gradient(ellipse at 35% 28%, #c9c2b6 0%, #9a9285 55%, #6f685d 100%); box-shadow: inset -3px -4px 0 rgba(0, 0, 0, .22), 0 3px 0 rgba(0, 0, 0, .25); z-index: 2; }
+.np-spring b { position: absolute; width: calc(46px * var(--s, 1)); height: calc(30px * var(--s, 1)); border-radius: 48% 52% 40% 45% / 62% 60% 40% 38%; z-index: 2;
+  --r1: #c9c2b6; --r2: #9a9285; --r3: #6f685d; --sp: rgba(60, 52, 44, .45); --sl: rgba(255, 255, 255, .35);
+  background:
+    radial-gradient(circle at 22% 62%, var(--sp) 0 1.2px, transparent 1.8px), radial-gradient(circle at 64% 40%, var(--sp) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 78% 70%, var(--sp) 0 1.4px, transparent 2px), radial-gradient(circle at 44% 78%, var(--sp) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 34% 46%, var(--sl) 0 1px, transparent 1.6px), radial-gradient(circle at 70% 58%, var(--sl) 0 .8px, transparent 1.4px),
+    linear-gradient(var(--ca, 118deg), transparent var(--cp, 46%), var(--cc, rgba(40, 34, 28, .5)) calc(var(--cp, 46%) + 1%), var(--cc, rgba(40, 34, 28, .5)) calc(var(--cp, 46%) + 3%), transparent calc(var(--cp, 46%) + 4%)),
+    radial-gradient(ellipse at 35% 28%, var(--r1) 0%, var(--r2) 55%, var(--r3) 100%);
+  box-shadow: inset -3px -4px 0 rgba(0, 0, 0, .24), inset 2px 2px 0 rgba(255, 255, 255, .18), 0 3px 0 rgba(0, 0, 0, .28); }
+.np-spring b.rk1 { --r1: #a9b4bd; --r2: #77838d; --r3: #4c5660; }
+.np-spring b.rk2 { --r1: #e0c9a2; --r2: #b89a70; --r3: #86694a; --sp: rgba(110, 70, 30, .4); }
+.np-spring b.rk3 { --r1: #b7b4a6; --r2: #858274; --r3: #5c594e; }
+.np-spring b.rk3::before { content: ''; position: absolute; left: 12%; right: 18%; top: -2px; height: 45%; border-radius: 50% 50% 40% 40%; background: radial-gradient(circle at 30% 60%, #8fcf5a 0 2px, transparent 2.5px), radial-gradient(circle at 70% 40%, #6fae3e 0 2px, transparent 2.5px), linear-gradient(#7cc04a, #4e8a2c); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .2); }
+.np-spring b.rk4 { --r1: #6e6a70; --r2: #4a474e; --r3: #2e2c32; --sp: rgba(0, 0, 0, .5); --sl: rgba(255, 255, 255, .22); }
+.np-spring b.sh1 { border-radius: 38% 62% 46% 54% / 55% 70% 30% 45%; --ca: 64deg; --cp: 58%; }
+.np-spring b.sh2 { border-radius: 60% 40% 55% 45% / 70% 50% 50% 30%; height: calc(36px * var(--s, 1)); --ca: 158deg; --cp: 36%; }
+.np-spring b.sh3 { border-radius: 30% 45% 25% 35% / 50% 45% 30% 40%; width: calc(52px * var(--s, 1)); --cc: transparent; }
+/* the waterfall: a rocky ledge behind the back of the pool, water pouring down, foam, spray and rings where it lands */
+.np-cliff { position: absolute; left: 50%; bottom: 92%; width: 120px; height: 92px; translate: -50% 0; z-index: 1; pointer-events: none; }
+.np-cl { position: absolute; background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, .25) 0 1px, transparent 1.6px) 0 0 / 9px 11px, radial-gradient(circle at 60% 70%, rgba(40, 34, 28, .45) 0 1.2px, transparent 1.8px) 0 0 / 13px 10px, linear-gradient(160deg, #a59d90 0%, #7d7568 50%, #554e44 100%); box-shadow: inset -4px -5px 0 rgba(0, 0, 0, .25), inset 3px 3px 0 rgba(255, 255, 255, .15), 0 3px 0 rgba(0, 0, 0, .3); }
+.np-cl1 { left: 0; bottom: 0; width: 56px; height: 78px; border-radius: 40% 55% 10% 20% / 45% 50% 10% 10%; }
+.np-cl2 { right: 0; bottom: 0; width: 58px; height: 84px; border-radius: 55% 40% 20% 10% / 50% 45% 10% 10%; }
+.np-cl3 { left: 28px; right: 28px; top: 0; height: 26px; border-radius: 45% 50% 30% 30% / 70% 70% 30% 30%; background: linear-gradient(#7cc04a, #4e8a2c 40%, transparent 41%), linear-gradient(160deg, #a59d90, #6c655a); z-index: 1; }
+.np-fall { position: absolute; left: 50%; top: 16px; bottom: -14px; width: 30px; translate: -50% 0; border-radius: 6px 6px 3px 3px; overflow: hidden; z-index: 2; background: linear-gradient(90deg, rgba(150, 220, 236, .85), rgba(220, 248, 255, .95) 30%, rgba(170, 230, 244, .9) 60%, rgba(120, 200, 222, .85)); box-shadow: 0 0 6px rgba(200, 245, 255, .6); }
+.np-fall u { position: absolute; inset: -40px 0 0; background: repeating-linear-gradient(180deg, transparent 0 7px, rgba(255, 255, 255, .8) 7px 10px, transparent 10px 18px); animation: np-fallrun .45s linear infinite; -webkit-mask-image: linear-gradient(90deg, transparent, #000 25%, #000 75%, transparent); mask-image: linear-gradient(90deg, transparent, #000 25%, #000 75%, transparent); }
+.np-fall u + u { left: 6px; right: -6px; animation-duration: .6s; opacity: .6; }
+@keyframes np-fallrun { to { transform: translateY(18px); } }
+.np-foam { position: absolute; left: 50%; bottom: -22px; width: 58px; height: 18px; translate: -50% 0; z-index: 3; border-radius: 50%; background: radial-gradient(ellipse, #fff 0 40%, rgba(255, 255, 255, .7) 60%, transparent 72%); filter: blur(1px); animation: np-foam .5s ease-in-out infinite alternate; }
+@keyframes np-foam { to { scale: 1.12 .9; opacity: .85; } }
+.np-spray { position: absolute; left: 50%; bottom: -16px; z-index: 3; }
+.np-spray em { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #fff; rotate: var(--a); animation: np-spray .7s ease-out var(--d) infinite; opacity: 0; }
+@keyframes np-spray { 0% { translate: 0 0; opacity: .95; } 100% { translate: 0 -22px; opacity: 0; scale: .5; } }
+.np-ripple { position: absolute; left: 50%; top: 16%; width: 40px; height: 12px; translate: -50% 0; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .7); z-index: 1; animation: np-ripple 1.6s ease-out infinite; }
+.np-ripple.r2 { animation-delay: .8s; }
+@keyframes np-ripple { from { scale: .6; opacity: .9; } to { scale: 3; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .np-fall u, .np-foam, .np-spray em, .np-ripple { animation: none; } }
 
 /* her ask 11-08: Tablet mode works well on phones: map first, big two-column tiles, comfortable tap targets, no sideways scroll */
 @media (max-width: 700px) {
