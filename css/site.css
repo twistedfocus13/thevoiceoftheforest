@@ -2664,7 +2664,7 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 @keyframes np-spring-in { from { opacity: 0; scale: .6; } to { opacity: 1; scale: 1; } }
 
 /* her ask 11-08: name plates sit right at the baby's feet; rocks ring the hot spring */
-.np-pet .np-tag { top: auto; }
+.np-pet .np-tag { top: 56%; bottom: auto; }   /* her 11-14 "the nametags are still far away": the frames have empty space under the feet; feet sit 56% down */
 .np-spring b { position: absolute; width: calc(46px * var(--s, 1)); height: calc(30px * var(--s, 1)); border-radius: 48% 52% 40% 45% / 62% 60% 40% 38%; z-index: 2;
   --r1: #c9c2b6; --r2: #9a9285; --r3: #6f685d; --sp: rgba(60, 52, 44, .45); --sl: rgba(255, 255, 255, .35);
   background:
