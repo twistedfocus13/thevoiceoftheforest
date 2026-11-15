@@ -1,14 +1,14 @@
 // Character hotbar in the top banner: money, training points, held item,
 // garment, a quick World Map, and the three bag items the player pinned.
-import * as store from './store.js?v=6af8823a';
-import { $, esc, num, toast } from './util.js?v=6af8823a';
-import { modal } from './ui.js?v=6af8823a';
-import { mailWaiting, openMyMailbox } from './mailbox.js?v=6af8823a';
-import { sentryDue } from './sentry.js?v=6af8823a';
-import { kitchenDue } from './kitchen.js?v=6af8823a';
-import { nurseryDue } from './nursery.js?v=6af8823a';
-import { itemInfo, useBagItem, itemPopHTML } from './itemuse.js?v=6af8823a';
-import { openFriends, friendsOf, isOnline } from './friends.js?v=6af8823a';
+import * as store from './store.js?v=6af903b5';
+import { $, esc, num, toast } from './util.js?v=6af903b5';
+import { modal } from './ui.js?v=6af903b5';
+import { mailWaiting, openMyMailbox } from './mailbox.js?v=6af903b5';
+import { sentryDue } from './sentry.js?v=6af903b5';
+import { kitchenDue } from './kitchen.js?v=6af903b5';
+import { nurseryDue } from './nursery.js?v=6af903b5';
+import { itemInfo, useBagItem, itemPopHTML } from './itemuse.js?v=6af903b5';
+import { openFriends, friendsOf, isOnline } from './friends.js?v=6af903b5';
 
 export const MAP_IMG = 'assets/maps/world_map.jpg';
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -118,13 +118,15 @@ async function openItemPop(anchor, id, name) {
 // panel gets the same two buttons (same counts, same popups)
 export function sideActionsHTML() {
   const c = (store.get('party') || {})[meId()]; if (!c) return '';
-  const due = choresFor(c).filter((x) => x.due).length; const on = friendsOf(c).filter(isOnline).length;
+  const due = choresFor(c).filter((x) => x.due).length; const on = friendsOf(c).filter(isOnline).length; const mail = mailWaiting(c);   // her ask 11-14: Mail button in the tablet side panel too
   return `<div class="tv-sideacts"><button type="button" class="tv-sact ${due ? 'due' : 'done'}" id="tvchores">📋 Chores ${due ? `<b class="hb-count">${due}</b>` : '✓'}</button>
-    <button type="button" class="tv-sact" id="tvfriends">👥 Friends${on ? ` <b class="hb-count on">${on}</b>` : ''}</button></div>`;
+    <button type="button" class="tv-sact" id="tvfriends">👥 Friends${on ? ` <b class="hb-count on">${on}</b>` : ''}</button>
+    <button type="button" class="tv-sact tv-mail ${mail ? 'due' : 'done'}" id="tvmail" title="${mail ? 'New mail! A mission is waiting' : 'Mailbox: today’s mission is done'}">${mail ? '📬' : '📪'} Mail${mail ? ' <b class="hb-count">1</b>' : ''}</button></div>`;
 }
 export function bindSideActions(root, closeSide) {
   const ch = root.querySelector('#tvchores'); if (ch) ch.onclick = (e) => { e.stopPropagation(); toggleChores(ch, meId(), closeSide); };
   const fr = root.querySelector('#tvfriends'); if (fr) fr.onclick = () => openFriends();
+  const ml = root.querySelector('#tvmail'); if (ml) ml.onclick = () => { closeSide?.(); openMyMailbox(); };
 }
 
 // Today's chores (her ask 10-27): a quick list of the daily jobs, what still needs doing, one tap to go there.
