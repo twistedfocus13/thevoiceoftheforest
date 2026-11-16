@@ -8,12 +8,12 @@
 // Guild Training: b = 'npc:<key>' (a guild member from GUILD below); the player's device picks for them and works out every round.
 // spar/<playerId>/<key> = { w, l, first } = the Guild Training Board.
 // Both players pick a move; when both are in, player a's device works out the round (player b's after a short wait).
-import * as store from './store.js?v=6afa72ba';
-import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6afa72ba';
-import { portrait, maxHp } from './ui.js?v=6afa72ba';
-import { allMoves, me, statVal } from './play.js?v=6afa72ba';
-import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6afa72ba';
-import { TYPE_ICONS } from './theme.js?v=6afa72ba';
+import * as store from './store.js?v=6afa73e8';
+import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6afa73e8';
+import { portrait, maxHp } from './ui.js?v=6afa73e8';
+import { allMoves, me, statVal } from './play.js?v=6afa73e8';
+import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6afa73e8';
+import { TYPE_ICONS } from './theme.js?v=6afa73e8';
 
 export const isBattle = (g) => g.kind === 'battle' || g.id === 'friendly-battle';
 export const GAME_ID = 'friendly-battle';
@@ -32,6 +32,12 @@ export const GUILD = {
     hi: 'Tweet! Training is just a game with extra hugs, right?', win: 'Yay yay yay! I won! Can we do it again?', lose: 'Aww… that’s okay! Good game!' },
   pichu: { nickname: 'Pichu', pokemon: 'Pichu', art: 'assets/portraits/emo/pichu_scarf/Normal.png', by: 'Rocky and Slakoth', type1: 'Electric', tier: 'Rookie', baseHp: 3, ...S(1, 3, 1, 2, 1, { Cute: 2 }), moves: ['Thunder Shock', 'Charm', 'Tail Whip'],
     hi: 'Ooh, a spar! My ears are tingling already!', win: 'Pika-WOW! Did you see that spark?', lose: 'Zzzap… I mean ow! Rematch soon?' },
+  // her 11-15 "Teddy and Teddiursa are the same pokemon": the recruited Teddiursa IS Teddy (key kept so his records stay),
+  // and "Also missing the second Pichu (no scarf)": the Pichu on Teddy's team (Team 4), separate from the scarf Pichu above
+  teddiursa: { nickname: 'Teddy', pokemon: 'Teddiursa', type1: 'Normal', tier: 'Rookie', baseHp: 4, ...S(2, 2, 2, 1, 1, { Cute: 1 }), moves: ['Scratch', 'Lick', 'Fury Swipes'],
+    hi: 'Rank up, rank down… I’ve seen it all. Let’s go!', win: 'Heh. Still got it.', lose: 'Down a rank again… I’ll be back.' },
+  pichu2: { nickname: 'Pichu (no scarf)', pokemon: 'Pichu', type1: 'Electric', tier: 'Rookie', baseHp: 3, ...S(1, 3, 1, 2, 1, { Cute: 2 }), moves: ['Thunder Shock', 'Sweet Kiss', 'Tail Whip'],
+    hi: 'No scarf, no problem! Let’s spar!', win: 'Pi-pichu! I did it!', lose: 'Ouchie… good battle!' },
   happiny: { nickname: 'Happiny', pokemon: 'Happiny', art: 'assets/portraits/emo/happiny/Normal.png', type1: 'Normal', tier: 'Rookie', baseHp: 4, ...S(1, 1, 2, 1, 2, { Cute: 3 }), moves: ['Pound', 'Charm', 'Sweet Kiss'],
     hi: 'I carry my egg everywhere, so please go easy on us!', win: 'We did it! Hugs all round!', lose: 'Oh my, you’re strong! Is it snack time yet?' },
   maushold: { nickname: 'Maushold', pokemon: 'Maushold', type1: 'Normal', tier: 'Bronze', baseHp: 4, ...S(2, 3, 1, 1, 1), moves: ['Double Hit', 'Bite', 'Tackle'],
@@ -214,7 +220,7 @@ async function resolve(bid) {
       const m2 = randomMove(); say(`${nm(id)}’s finger wag turned into ${m2.name}!`, 'use', id); return attack(m2, id, foe);
     }
     let slices = [];
-    try { slices = (await import('./games.js?v=6afa72ba')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
+    try { slices = (await import('./games.js?v=6afa73e8')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
     const wt = (x) => parseFloat(x[1]) || 1; let r = Math.random() * slices.reduce((s, x) => s + wt(x), 0);
     const sl = slices.find((x) => (r -= wt(x)) <= 0) || ['Lucky Star', 1, ''];
     say(`🌟 The Metronome wheel spins… ${sl[0]}!`, 'up', id);

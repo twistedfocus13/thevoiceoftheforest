@@ -1,29 +1,29 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6afa72ba';
-import * as sheet from './sheetdata.js?v=6afa72ba';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast, slug } from './util.js?v=6afa72ba';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6afa72ba';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES, WORLD } from './content.js?v=6afa72ba';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6afa72ba';
-import { unlockChar } from './charlock.js?v=6afa72ba';
-import { CONFIG } from './config.js?v=6afa72ba';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6afa72ba';
-import { merged, editContent } from './content-store.js?v=6afa72ba';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6afa72ba';
-import { guildName, missionParts } from './guild.js?v=6afa72ba';
-import { homeHTML } from './sitepages.js?v=6afa72ba';
-import { burstSet } from './burst.js?v=6afa72ba';
-import { giftNote } from './mailbox.js?v=6afa72ba';
-import { levelUpHTML, openLevelUp } from './levelup.js?v=6afa72ba';
-import { pinsOf, showMap } from './hotbar.js?v=6afa72ba';
-import { chatterLatestHTML } from './chatter.js?v=6afa72ba';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6afa72ba';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6afa72ba';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML, leftText, dayEndsAt } from './weather.js?v=6afa72ba';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6afa72ba';
-import { find } from './effects.js?v=6afa72ba';
-import * as dice3d from './dice3d.js?v=6afa72ba';
-import { GUILD, syncRecruits } from './battle.js?v=6afa72ba';
+import * as store from './store.js?v=6afa73e8';
+import * as sheet from './sheetdata.js?v=6afa73e8';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast, slug } from './util.js?v=6afa73e8';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6afa73e8';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES, WORLD } from './content.js?v=6afa73e8';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6afa73e8';
+import { unlockChar } from './charlock.js?v=6afa73e8';
+import { CONFIG } from './config.js?v=6afa73e8';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6afa73e8';
+import { merged, editContent } from './content-store.js?v=6afa73e8';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6afa73e8';
+import { guildName, missionParts } from './guild.js?v=6afa73e8';
+import { homeHTML } from './sitepages.js?v=6afa73e8';
+import { burstSet } from './burst.js?v=6afa73e8';
+import { giftNote } from './mailbox.js?v=6afa73e8';
+import { levelUpHTML, openLevelUp } from './levelup.js?v=6afa73e8';
+import { pinsOf, showMap } from './hotbar.js?v=6afa73e8';
+import { chatterLatestHTML } from './chatter.js?v=6afa73e8';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6afa73e8';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6afa73e8';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML, leftText, dayEndsAt } from './weather.js?v=6afa73e8';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6afa73e8';
+import { find } from './effects.js?v=6afa73e8';
+import * as dice3d from './dice3d.js?v=6afa73e8';
+import { GUILD, syncRecruits } from './battle.js?v=6afa73e8';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -636,7 +636,7 @@ function bindCharCard(main, c) {
   $('#stedit', main).onclick = () => pickStatus(c);
   $('#editme', main).onclick = () => editCharacter(c.id);
   // her ask 11-01: a shortcut to your own base (it opens over the page, like tapping its square on the Woodland Base map)
-  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6afa72ba').then((m) => m.openBase(c.id, { from: gb }));
+  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6afa73e8').then((m) => m.openBase(c.id, { from: gb }));
   $('#editme2', main).onclick = () => editCharacter(c.id);
   $('#qroll', main).onclick = () => quickRoll(c);
   $$('[data-act]', main).forEach((b) => b.onclick = () => actionRoll(c, actions().find((a) => a.id === b.dataset.act)));
@@ -1077,7 +1077,8 @@ export function bondableNpcs() {
   // enemies the GM made in the enemy builder (her ask 11-09: "automatically assume no team"); GM ✕ takes one off the list
   for (const [id, x] of Object.entries(store.get('npcExtra') || {})) { if (!x?.name) continue; const k = slug(x.name); if (!out.has(k)) out.set(k, { key: k, name: x.name, extra: id, face: portrait({ nickname: x.name, pokemon: x.pokemon, ...(x.art ? { art: x.art } : {}) }, 'sm') }); }
   for (const n of WORLD.npcs || []) { const k = slug(shortName(n.name)); if (!out.has(k) && !onTeam.has(k)) out.set(k, { key: k, name: n.name, face: portrait({ nickname: n.name, pokemon: n.pokemon }, 'sm') }); }
-  for (const t of NPC_TEAMS) for (const n of t) onTeam.add(slug(shortName(n.replace(/\s*\(.*\)/, ''))));
+  // 11-15: "Pichu (no scarf)" is its own NPC now (GUILD.pichu2), so team names match exactly; the scarf Pichu isn't on a team
+  for (const t of NPC_TEAMS) for (const n of t) onTeam.add(slug(shortName(n)));
   for (const k of onTeam) out.delete(k);
   return [...out.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
