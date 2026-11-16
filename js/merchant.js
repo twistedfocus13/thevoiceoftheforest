@@ -3,12 +3,13 @@
 // Haggling: Slash never tolerates it (try 1 "fair", try 2 "absolutely not", try 3 = he and his troupe of 3 stand armed).
 // Beat him in that fight: his caravan never returns and the team gets everything on his table.
 // Lose: his prices go up 150% for good (no more sales) and he attacks at the very next haggle.
-import * as store from './store.js?v=6af9b7bd';
-import { $, $$, esc, num, uid, toast } from './util.js?v=6af9b7bd';
-import { modal, closeModal } from './ui.js?v=6af9b7bd';
-import { ixLink } from './effects.js?v=6af9b7bd';
-import { guildSay, gmTodo } from './chatter.js?v=6af9b7bd';
-import { buyDialog, logSale, sellDialog } from './shopkit.js?v=6af9b7bd';
+import * as store from './store.js?v=6afa6e0b';
+import { $, $$, esc, num, uid, toast } from './util.js?v=6afa6e0b';
+import { modal, closeModal } from './ui.js?v=6afa6e0b';
+import { ixLink } from './effects.js?v=6afa6e0b';
+import { guildSay, gmTodo } from './chatter.js?v=6afa6e0b';
+import { buyDialog, logSale, sellDialog } from './shopkit.js?v=6afa6e0b';
+import * as tstock from './treasurestock.js?v=6afa6e0b';
 
 export const BROTHERS = {
   Slash: { tell: 'Does not tolerate haggling.', lines: ['No. The price I listed is fair.', 'Absolutely not.', '*stands armed and guarded with his troupe of 3*'] },
@@ -41,20 +42,29 @@ const priceOf = (s) => Math.max(1, Math.round(listPrice(s) * (100 - bondOff()) /
 // different brother sets up. Picked from this pool with a seed of day + brother, so every screen rolls the same table.
 // GM edits stay until the next day or switch.
 const POOL = [['Oran Berry', 30], ['Cheri Berry', 50], ['Pecha Berry', 70], ['Rawst Berry', 50], ['Chesto Berry', 50], ['Aspear Berry', 50], ['Persim Berry', 50], ['Leppa Berry', 60],
-  ['Apple', 20], ['Big Apple', 50], ['Escape Orb', 150], ['All-Hit Orb', 150], ['Luminous Orb', 300], ['Health Orb', 300], ['Blast Seed', 30], ['Sleep Seed', 50],
+  ['Apple', 20], ['Big Apple', 50], ['Health Orb', 300], ['Blast Seed', 30], ['Sleep Seed', 50],
   ['Stun Seed', 50], ['Quick Seed', 60], ['Warp Seed', 60], ['Totter Seed', 40], ['Encourage Seed', 100], ['Heal Seed', 200], ['Gravelerock', 40, 10], ['Stick', 30, 10]];
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
-const stockKey = () => today() + '|' + who();
+// '|t2' = tables with her Treasure Inventory items (11-15); the key change rolls a new table once
+const keyFor = (n) => today() + '|' + n + '|t2';
+const stockKey = () => keyFor(who());
+// her ask 11-15: half of each table comes from her Treasure Inventory list at her prices (1 Common, 1 Uncommon, 1 Rare,
+// and now and then a Very Rare instead of the Rare). The other three are the usual berries, seeds and supplies.
+const MERCH_PLAN = ['Common', 'Uncommon', ['Very Rare', 0.15, 'Rare']];
 function rollTable(key) {
   let h = 2166136261; for (const ch of key) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619); }
   const rnd = () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
   const pool = POOL.slice(); const out = [];
-  while (out.length < 6) { const [name, price, qty] = pool.splice(Math.floor(rnd() * pool.length), 1)[0];
+  const tre = tstock.pick(key + '|treasure', MERCH_PLAN).map((t) => [t.name, t.price]);
+  const basics = 6 - tre.length;
+  while (out.length < basics) { const [name, price, qty] = pool.splice(Math.floor(rnd() * pool.length), 1)[0];
     const sale = rnd() < 0.2 ? Math.max(1, Math.round(price * 0.8 / 5) * 5) : ''; out.push({ name, price, qty: qty || 1, sale, saleTag: false, sold: false }); }
+  for (const [name, price] of tre) { const sale = rnd() < 0.2 ? Math.max(1, Math.round(price * 0.8 / 5) * 5) : ''; out.push({ name, price, qty: 1, sale, saleTag: false, sold: false }); }
   return out;
 }
 function restockIfDue() {
   const m = M(); if (m.away || bro().gone) return;
+  if (!tstock.loaded()) { tstock.load().then(restockIfDue); return; }
   if (!m.stockKey) { store.set('merchant/stockKey', stockKey()); return; }   // first look after this update: keep today's table as it is
   if (m.stockKey !== stockKey()) store.update('merchant', (x) => ({ ...(x || {}), slots: rollTable(stockKey()), stockKey: stockKey() }));
 }
@@ -121,7 +131,7 @@ export function bindMerchant(main) {
 
 function setBrother(n) {
   if (bro(n).gone) return;
-  store.update('merchant', (m) => ({ ...(m || {}), brother: n, away: false, haggles: null, ...(m?.brother === n ? {} : { slots: rollTable(today() + '|' + n), stockKey: today() + '|' + n }) }));
+  tstock.load().then(() => store.update('merchant', (m) => ({ ...(m || {}), brother: n, away: false, haggles: null, ...(m?.brother === n ? {} : { slots: rollTable(keyFor(n)), stockKey: keyFor(n) }) })));   // her list loads first so the new table has her items
   guildSay(n, 'do', `rolls the caravan into ${M().place || 'Woodland Base'} and sets up a little table, shield polished, prices posted.`);
 }
 

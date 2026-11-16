@@ -1,25 +1,27 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6af9b7bd';
-import * as sheet from './sheetdata.js?v=6af9b7bd';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6af9b7bd';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6af9b7bd';
-import { MISSION_GP } from './content.js?v=6af9b7bd';
-import { ranks } from './rulebook.js?v=6af9b7bd';
-import { merged, editContent } from './content-store.js?v=6af9b7bd';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6af9b7bd';
-import { myId } from './app.js?v=6af9b7bd';
-import { lowAlertHTML, donorBoardHTML } from './vault.js?v=6af9b7bd';
-import { friendZoneSection } from './friendzone.js?v=6af9b7bd';
-import { ixLink } from './effects.js?v=6af9b7bd';
-import { burstSet } from './burst.js?v=6af9b7bd';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6af9b7bd';
-import { merchantHTML, bindMerchant } from './merchant.js?v=6af9b7bd';
-import { buyDialog, logSale, pokeBarHTML, shopChatHTML, sellDialog } from './shopkit.js?v=6af9b7bd';
+import * as store from './store.js?v=6afa6e0b';
+import * as sheet from './sheetdata.js?v=6afa6e0b';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6afa6e0b';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6afa6e0b';
+import { MISSION_GP } from './content.js?v=6afa6e0b';
+import { ranks } from './rulebook.js?v=6afa6e0b';
+import { merged, editContent } from './content-store.js?v=6afa6e0b';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6afa6e0b';
+import { myId } from './app.js?v=6afa6e0b';
+import { lowAlertHTML, donorBoardHTML } from './vault.js?v=6afa6e0b';
+import { friendZoneSection } from './friendzone.js?v=6afa6e0b';
+import { ixLink } from './effects.js?v=6afa6e0b';
+import { burstSet } from './burst.js?v=6afa6e0b';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6afa6e0b';
+import { merchantHTML, bindMerchant } from './merchant.js?v=6afa6e0b';
+import * as tstock from './treasurestock.js?v=6afa6e0b';
+import { buyDialog, logSale, pokeBarHTML, shopChatHTML, sellDialog } from './shopkit.js?v=6afa6e0b';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
   ['Blast Seed', 30, 'Seed'], ['Sleep Seed', 50, 'Seed'], ['Stun Seed', 50, 'Seed'], ['Encourage Seed', 100, 'Seed'], ['Heal Seed', 200, 'Seed'], ['Tiny Reviver Seed', 500, 'Seed'],
-  ['Escape Orb', 150, 'Orb'], ['All-Hit Orb', 150, 'Orb'], ['Luminous Orb', 300, 'Orb'], ['Health Orb', 300, 'Orb'], ['All-Protect Orb', 500, 'Orb'],
+  // her ask 11-15: orbs on her Treasure Inventory list (Escape, All-Hit, Luminous) are sold at her prices under "Today's treasures"
+  ['Health Orb', 300, 'Orb'], ['All-Protect Orb', 500, 'Orb'],
 ].map(([name, price, kind]) => ({ name, price, kind, stock: '' }));
 export const SHOP_SCHEMA = [['name', 'Item'], ['price', 'Price (Poké)', 'number'], ['kind', 'Kind'], ['stock', 'Stock (blank = unlimited)', 'number']];
 export const shop = () => merged('shop', SHOP_DEFAULTS);
@@ -160,13 +162,43 @@ export function renderShop(main) {
   <div class="hero banner"><img class="hdr whole" src="assets/banners/guild_shop_hd.jpg" alt="Maushold and Chandelure’s Guild Shop"></div>
   <div class="section-title"><h2>🐭 Maushold & Chandelure’s Shop</h2><button class="btn sm" id="shopsell">💰 Sell items</button></div>
   <div class="card" style="padding:6px 12px"><ul class="log shop-grid" style="max-height:none">${shop().map((s) => `<li class="row nowrap"><img class="shop-ic" src="assets/items/${esc(String(s.name).toLowerCase().replace(/[^a-z0-9]+/g, '-'))}.png" alt="" onerror="this.style.visibility='hidden'"><span class="grow">${ixLink(s.name)}</span><b class="pix">${num(s.price)} P</b><button class="btn sm" data-buy="${esc(s.id)}" ${s.stock === 0 ? 'disabled' : ''}>Buy</button></li>`).join('')}</ul></div>
+  ${treasureCardHTML()}
   ${shopChatHTML('guild', 'Maushold & Chandelure')}`;
   $$('[data-buy]', main).forEach((b) => b.onclick = () => buy(b.dataset.buy));
+  $$('[data-tbuy]', main).forEach((b) => b.onclick = () => buyTreasure(b.dataset.tbuy));
+  if (!tstock.loaded()) tstock.load().then(() => { if (main.isConnected && /^#\/shop/.test(location.hash)) renderShop(main); });
   $('#shopsell', main).onclick = () => sellDialog({ shop: 'guild', keeper: 'Maushold & Chandelure', valueOf: guildBuys,
     thanks: ['We’ll find this a good home!', '*the Maushold family counts the coins out together*', '*Chandelure’s flames flicker approvingly*'] });
 }
 // what the Guild Shop pays: half its own price for things it stocks, 25 Poké for anything else
-export const guildBuys = (name) => { const s = shop().find((x) => x.name.toLowerCase() === name.toLowerCase()); return s ? Math.max(1, Math.floor(num(s.price) / 2)) : 25; };
+export const guildBuys = (name) => { const s = shop().find((x) => x.name.toLowerCase() === name.toLowerCase()) || tstock.find(name); return s ? Math.max(1, Math.floor(num(s.price) / 2)) : 25; };
+
+// Today's treasures (her ask 11-15): five items from her Treasure Inventory list at her prices, one of each a day,
+// new picks every morning: 2 Common, 2 Uncommon, 1 Rare. Very Rare items only turn up at the travelling merchant.
+const GUILD_PLAN = ['Common', 'Common', 'Uncommon', 'Uncommon', 'Rare'];
+const tSlug = (n) => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+const tToday = () => tstock.pick('guild|' + tstock.today(), GUILD_PLAN);
+const tSold = (name) => num((store.get('shopdaily/' + tstock.today()) || {})[tSlug(name)]);
+function treasureCardHTML() {
+  const row = (t) => { const out = tSold(t.name) > 0; return `<li class="row nowrap"><img class="shop-ic" src="assets/items/${esc(tSlug(t.name))}.png" alt="" onerror="this.style.visibility='hidden'"><span class="grow">${ixLink(t.name)} <span class="pill r-${esc(t.tier.split(' ')[0])}">${esc(t.tier)}</span></span><b class="pix">${out ? 'SOLD' : t.price.toLocaleString() + ' P'}</b><button class="btn sm" data-tbuy="${esc(t.name)}" ${out ? 'disabled' : ''}>Buy</button></li>`; };
+  const body = tstock.loaded() ? (tToday().map(row).join('') || '<li class="muted">Nothing today.</li>') : '<li class="muted">Unpacking today’s treasures…</li>';
+  return `<div class="section-title"><h2>✨ Today’s treasures</h2></div>
+  <div class="card" style="padding:6px 12px"><p class="small muted" style="margin:6px 0">One of each, new picks every morning.</p><ul class="log shop-grid" style="max-height:none">${body}</ul></div>`;
+}
+function buyTreasure(name) {
+  const t = tToday().find((x) => x.name === name); if (!t || tSold(t.name) > 0) return;
+  buyDialog({ item: t.name, price: t.price, max: 1, seller: 'Maushold & Chandelure', onBuy: (buyer, qty, total) => {
+    store.update('party/' + buyer.id, (x) => ({ ...x, poke: num(x?.poke) - total }));
+    const bag = store.get('bag') || {};
+    const same = Object.entries(bag).find(([, b]) => b.name === t.name && b.owner === buyer.id);
+    if (same) store.set(`bag/${same[0]}/qty`, num(same[1].qty) + 1); else store.set('bag/' + uid(), { name: t.name, qty: 1, owner: buyer.id });
+    store.set(`shopdaily/${tstock.today()}/${tSlug(t.name)}`, 1);
+    const text = `${buyer.nickname} bought ${t.name} for ${total.toLocaleString()} Poké.`;
+    store.pushLimited('log', { t: Date.now(), text });
+    logSale('guild', buyer, text, SHOP_THANKS[Math.floor(Math.random() * SHOP_THANKS.length)]);
+    toast(`Bought ${t.name}`);
+  } });
+}
 
 export function renderMerchant(main) {
   main.innerHTML = `<div class="row" style="margin-top:12px"><a class="btn alt sm" href="#/guild">← Guild</a></div>
