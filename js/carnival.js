@@ -5,16 +5,16 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6afa6e0b';
-import { $, $$, esc, toast, num } from './util.js?v=6afa6e0b';
-import { me, logRoll } from './play.js?v=6afa6e0b';
-import { markWinner } from './sparkle.js?v=6afa6e0b';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6afa6e0b';
-import { buddyLook, carnivalCare } from './nursery.js?v=6afa6e0b';
-import { DECOR } from './basedecor.js?v=6afa6e0b';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6afa6e0b';
-import { REWARD_CURSORS } from './digcursor.js?v=6afa6e0b';
-import { midwayHTML, mountMidway } from './midway.js?v=6afa6e0b';
+import * as store from './store.js?v=6afa72ba';
+import { $, $$, esc, toast, num } from './util.js?v=6afa72ba';
+import { me, logRoll } from './play.js?v=6afa72ba';
+import { markWinner } from './sparkle.js?v=6afa72ba';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6afa72ba';
+import { buddyLook, carnivalCare } from './nursery.js?v=6afa72ba';
+import { DECOR } from './basedecor.js?v=6afa72ba';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6afa72ba';
+import { REWARD_CURSORS } from './digcursor.js?v=6afa72ba';
+import { midwayHTML, mountMidway } from './midway.js?v=6afa72ba';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -64,7 +64,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6afa6e0b').catch(() => null);
+const fz = () => import('./fzscene.js?v=6afa72ba').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -754,6 +754,7 @@ export function renderCarnival(main, g, gm, onEdit) {
         requestAnimationFrame(rein); };
       requestAnimationFrame(rein);
     }
+    if (k === 'wheel') spriteInto($('.cv-jfspr', rbox), 'Jirachi', 1.3, 'down', true);   // Jirachi flies loops around the wheel
     const out = $('#cvrsay', panel); let extra = '';
     let cnote = '';
     if (k === 'teacups') {
@@ -817,7 +818,20 @@ export function renderCarnival(main, g, gm, onEdit) {
       <div class="cv-crow"><div class="cv-ctrack">${[...CAROUSEL_BACK, ...CAROUSEL_BACK].map((n, i) => `<span class="cv-cmount" style="animation-delay:${(i % 3) * -0.4}s"><i class="cv-cpole"></i><span class="cv-cspr" data-sp="${n}"></span><b class="cv-yell">${['😱', '❗', '😵', '🙀'][i % 4]}</b></span>`).join('')}</div></div>
       <div class="cv-cfloor"></div><div class="cv-fpoles"><div class="cv-ftrack">${'<i></i>'.repeat(12)}</div></div>
       <div class="cv-pole"></div><div class="cv-seat cv-bob cv-front"><span class="cv-flames"><i></i><i></i><i></i><i></i><i></i></span><span class="cv-mount"></span>${pair}<b class="cv-yell me">😱</b></div><div class="cv-deck"></div>`;
-    if (k === 'wheel') return `<div class="cv-stars"></div><div class="cv-comet big"><i></i></div><div class="cv-bigwheel"><div class="cv-arm"><div class="cv-gondola">${pair}</div></div></div>`;
+    if (k === 'wheel') {
+      // her ask 11-15 "Make the ferris wheel look more like the one in the carnival. Jirachi will fly around": the same
+      // wheel as on the midway (gold rim + inner ring, 14 spokes with blinking bulbs, coloured cars, A-frame stand, star hub)
+      const n = 14; const R = 95; const COL = ['#e24a4a', '#4a8fe2', '#f2c14e', '#a45ae2', '#3ec27a', '#ff8ad0', '#ff9b3a'];
+      const spokes = Array.from({ length: n }, (_, i) => { const t = i * 2 * Math.PI / n; const x = Math.cos(t) * R; const y = Math.sin(t) * R;
+        return `<line x1="0" y1="0" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#f2c14e" stroke-width="1.6"/><circle class="cv-bulb" cx="${(x * 0.62).toFixed(1)}" cy="${(y * 0.62).toFixed(1)}" r="2.4" style="animation-delay:${(i % 3) * 0.3}s"/><circle class="cv-bulb" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" style="animation-delay:${(i % 4) * 0.25}s"/>`; }).join('');
+      const cars = Array.from({ length: 6 }, (_, i) => { const a = (i + 1) * 360 / 7; return `<div class="cv-arm" style="--a:${a.toFixed(1)}deg;transform:rotate(${a.toFixed(1)}deg)"><div class="cv-gondola deco" style="background:${COL[i + 1]}"><i></i></div></div>`; }).join('');
+      return `<div class="cv-stars"></div><div class="cv-comet big"><i></i></div>
+      <svg class="cv-fwstand" viewBox="0 0 140 100" preserveAspectRatio="none" aria-hidden="true"><path d="M70 0 L12 96 M70 0 L128 96 M34 60 L106 60" stroke="#c99a3a" stroke-width="5" fill="none" vector-effect="non-scaling-stroke"/></svg><div class="cv-fwbase"></div>
+      <div class="cv-bigwheel fw"><svg class="cv-fwrim" viewBox="-100 -100 200 200" aria-hidden="true"><circle r="${R}" fill="none" stroke="#f2c14e" stroke-width="3"/><circle r="${R * 0.62}" fill="none" stroke="#f2c14e" stroke-width="1.6"/>${spokes}</svg>
+        ${cars}<div class="cv-arm"><div class="cv-gondola" style="--car:${COL[0]}">${pair}</div></div></div>
+      <div class="cv-fwhub"><b>⭐</b></div>
+      <div class="cv-jfly"><span class="cv-jfspr"></span><i class="cv-jtrail"></i></div>`;
+    }
     if (k === 'coaster') return `<div class="cv-stars"></div><svg class="cv-track" viewBox="0 0 300 200"><path d="M-10 170 L60 170 Q90 170 110 40 Q120 10 140 40 Q170 175 200 150 Q230 120 250 150 Q270 175 310 170" fill="none" stroke="#f2c14e" stroke-width="4"/><path d="M-10 178 L60 178 Q92 178 112 48 Q120 20 138 48 Q170 183 200 158 Q230 128 250 158 Q270 183 310 178" fill="none" stroke="#a45ae2" stroke-width="2"/></svg>
       <div class="cv-car"><span class="cv-cart">${pair}</span></div><div class="cv-dragfly"><span class="cv-drag"></span></div><svg class="cv-reinsvg" aria-hidden="true"><line class="r1"/><line class="r2"/></svg>`;
     // her ask 11-12 "make the tea cup from the side and other rea cubs in the back. Lapras is using whirlpool to turn the

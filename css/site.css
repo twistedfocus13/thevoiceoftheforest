@@ -3598,7 +3598,9 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .cv-r-carousel .cv-pole { top: 60px; width: 8px; margin-left: -4px; z-index: 1; }
 .cv-r-carousel .cv-deck { z-index: 3; }
 .cv-front { z-index: 2; bottom: 34px; }
-.cv-r-carousel .cv-seat .cv-pair { margin-bottom: -40px; transform: translateX(-8px) scale(.9); transform-origin: 50% 100%; }
+.cv-r-carousel .cv-seat .cv-pair { margin-bottom: -40px; transform: translateX(-2px) scale(.88); transform-origin: 50% 100%; gap: 0; }
+/* her ask 11-15 "Make the pokemon more center in the back": both riders sit together on the middle of Rapidash's back */
+.cv-r-carousel .cv-seat .cv-pair > :nth-child(2) { margin-left: -12px; }
 .cv-front .cv-mount { position: relative; z-index: 0; filter: drop-shadow(0 0 8px rgba(255, 150, 60, .55)); }
 .cv-r-carousel.shiny .cv-front .cv-mount { filter: drop-shadow(0 0 10px rgba(120, 190, 255, .8)); }
 .cv-flames { position: absolute; left: -46px; bottom: 26px; width: 70px; height: 50px; pointer-events: none; }
@@ -3786,3 +3788,26 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .mw-mimesay::after { left: 10px; margin-left: 0; bottom: -9px; border-top-color: #fff8ea; transform: skewX(30deg); }
 .pb-gift .cv-pz-cur { transform: scale(1.7); margin: 10px; }
 .mw-pbooth { z-index: 4; }
+
+/* her ask 11-15: ride view wheel = the midway's Wishing Star Wheel, Jirachi flying loops around it */
+.cv-r-wheel { height: 300px; }
+.cv-r-wheel .cv-bigwheel.fw { border: 0; background: none; z-index: 2; width: 176px; height: 176px; top: 34px; margin: 0 0 0 -88px; }
+.cv-fwrim { position: absolute; inset: -2.6%; width: 105.2%; height: 105.2%; overflow: visible; }
+.cv-fwstand { position: absolute; left: 50%; top: 122px; width: 150px; margin-left: -75px; height: 166px; z-index: 1; }
+.cv-fwbase { position: absolute; left: 50%; bottom: 6px; width: 160px; margin-left: -80px; height: 11px; border-radius: 3px; background: #6b2a3a; border: 2px solid #f2c14e; z-index: 1; }
+.cv-fwhub { position: absolute; left: 50%; top: 122px; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; background: #f2c14e; border: 2px solid #8a5a1a; display: grid; place-items: center; font-size: 13px; z-index: 3; }
+.cv-gondola.deco { width: 22px; height: 15px; padding: 0; margin-top: 8px; border: 1px solid #2b1d12; border-radius: 2px 2px 7px 7px; animation-name: cv-gspin2; }
+.cv-gondola.deco::before { top: -14px; height: 14px; }
+.cv-gondola.deco i { position: absolute; left: 3px; right: 3px; top: 3px; height: 5px; border-radius: 1px; background: #ffe9b0; opacity: .85; }
+@keyframes cv-gspin2 { from { transform: translateX(-50%) rotate(calc(-1 * var(--a))); } to { transform: translateX(-50%) rotate(calc(-1 * var(--a) - 360deg)); } }
+.cv-r-wheel .cv-gondola:not(.deco) { top: 2px; padding: 0 3px 4px; background: linear-gradient(transparent 58%, var(--car, #d63a3a) 58%); border-bottom: 3px solid #f2c14e; border-radius: 0 0 9px 9px; }
+.cv-r-wheel .cv-gondola:not(.deco) .cv-pair { zoom: .5; gap: 0; }
+.cv-r-wheel .cv-gondola:not(.deco)::before { top: -4px; height: 6px; }
+.cv-r-wheel .cv-bigwheel.fw { animation-iteration-count: 1; }
+.cv-r-wheel .cv-arm .cv-gondola.deco { animation-duration: 9s; animation-timing-function: linear; animation-iteration-count: 1; }
+.cv-jfly { position: absolute; left: 50%; top: 122px; width: 0; height: 0; z-index: 4; animation: cv-jloop 6s ease-in-out infinite; }
+.cv-jfspr { position: absolute; left: 0; top: 0; transform: translate(-50%, -60%); filter: drop-shadow(0 0 6px rgba(255, 236, 140, .85)); animation: cv-jbob .9s ease-in-out infinite alternate; }
+.cv-jtrail { position: absolute; left: -4px; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: #fff6b0; box-shadow: 0 0 8px 3px rgba(255, 236, 140, .8); opacity: .8; animation: cv-jtw .5s steps(2) infinite; }
+@keyframes cv-jbob { to { margin-top: -5px; } }
+@keyframes cv-jtw { 50% { opacity: .2; transform: scale(.6); } }
+@keyframes cv-jloop { 0% { transform: translate(-122px, -6px); } 15% { transform: translate(-92px, -78px); } 30% { transform: translate(0, -100px); } 45% { transform: translate(94px, -76px); } 60% { transform: translate(122px, 0); } 75% { transform: translate(88px, 74px) scale(.85); } 88% { transform: translate(-40px, 90px) scale(.85); } 100% { transform: translate(-122px, -6px); } }
