@@ -1,8 +1,8 @@
 // Her ask 11-15 ("yes" to: both shops sell from her Treasure Inventory list at her prices, a few items by rarity each day).
 // The list comes from the campaign spreadsheet (live, else the saved copy). Cursed and one-of-a-kind treasure rows are
 // never put up for sale. Picks are seeded by the day (and shop), so every screen shows the same stock.
-import * as sheet from './sheetdata.js?v=6afa73e8';
-import { num } from './util.js?v=6afa73e8';
+import * as sheet from './sheetdata.js?v=6afe6363';
+import { num } from './util.js?v=6afe6363';
 
 let list = null; let loading = null;
 export const loaded = () => !!list;

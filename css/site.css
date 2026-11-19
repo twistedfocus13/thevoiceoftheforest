@@ -2842,7 +2842,9 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 /* her site check 11-09 ("Yes please" to all four): tiny text bumped to a readable size on phones, caution tape no longer covers chore text */
 @container (max-width: 520px) { .mc-plate { font-size: 11px; } .mc-mat .mc-sale { font-size: 10px; } }
 .fzs-tag { font-size: 11px; }
-.fzs-cube.pic .fzs-cube-nm, .tv-fz .fzs-cube.pic .fzs-cube-nm, .tv-fz .fzs-cube.pic .fzs-cube-nm.nm-long { font-size: max(11px, 1em); }
+/* her ask 11-18 "Fix the size of font": map square names sized to their square (they were page-size, wrapping and cut off "Fernsha...") */
+.fzs-cube.pic { container-type: size; }
+.fzs-cube.pic .fzs-cube-nm, .fzs-cube.pic .fzs-cube-nm.nm-long { font-size: clamp(11px, 10.5cqw, 16px); overflow: visible; text-overflow: clip; max-width: 94%; line-height: 1.15; }
 .tv-fz .fzs-cube.pic .fzs-cube-nm, .tv-fz .fzs-cube.pic .fzs-cube-nm.nm-long { font-size: 11px; }
 .due-ribbon { top: 8px; transform: rotate(-2deg); }
 .gamecard.due:has(.due-ribbon) { padding-top: 54px; }
