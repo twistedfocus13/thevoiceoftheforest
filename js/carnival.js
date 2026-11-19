@@ -5,16 +5,16 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6afe6363';
-import { $, $$, esc, toast, num } from './util.js?v=6afe6363';
-import { me, logRoll } from './play.js?v=6afe6363';
-import { markWinner } from './sparkle.js?v=6afe6363';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6afe6363';
-import { buddyLook, carnivalCare } from './nursery.js?v=6afe6363';
-import { DECOR } from './basedecor.js?v=6afe6363';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6afe6363';
-import { REWARD_CURSORS } from './digcursor.js?v=6afe6363';
-import { midwayHTML, mountMidway } from './midway.js?v=6afe6363';
+import * as store from './store.js?v=6aff78cb';
+import { $, $$, esc, toast, num } from './util.js?v=6aff78cb';
+import { me, logRoll } from './play.js?v=6aff78cb';
+import { markWinner } from './sparkle.js?v=6aff78cb';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6aff78cb';
+import { buddyLook, carnivalCare } from './nursery.js?v=6aff78cb';
+import { DECOR } from './basedecor.js?v=6aff78cb';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6aff78cb';
+import { REWARD_CURSORS } from './digcursor.js?v=6aff78cb';
+import { midwayHTML, mountMidway } from './midway.js?v=6aff78cb';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -64,7 +64,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6afe6363').catch(() => null);
+const fz = () => import('./fzscene.js?v=6aff78cb').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;

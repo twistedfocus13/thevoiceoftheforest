@@ -1,15 +1,15 @@
 // Pelipper Post: a little mailbox above each player's name. Once a day every character gets one letter with a
 // small solo mission; they roll for it and can earn an item, Poké, a recruit chance or a new place to explore.
 // Letters are GM-editable (content/mail). Recruits and new places go on the GM checklist for the GM to play out.
-import * as store from './store.js?v=6afe6363';
-import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6afe6363';
-import { modal, closeModal } from './ui.js?v=6afe6363';
-import { merged, editContent } from './content-store.js?v=6afe6363';
-import { logRoll, statVal } from './play.js?v=6afe6363';
-import { dailyRoll, hash } from './weather.js?v=6afe6363';
-import { gameSay, gmTodo } from './chatter.js?v=6afe6363';
-import { markWinner } from './sparkle.js?v=6afe6363';
-import { sendFx, unpackFx } from './letterfx.js?v=6afe6363';
+import * as store from './store.js?v=6aff78cb';
+import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6aff78cb';
+import { modal, closeModal } from './ui.js?v=6aff78cb';
+import { merged, editContent } from './content-store.js?v=6aff78cb';
+import { logRoll, statVal } from './play.js?v=6aff78cb';
+import { dailyRoll, hash } from './weather.js?v=6aff78cb';
+import { gameSay, gmTodo } from './chatter.js?v=6aff78cb';
+import { markWinner } from './sparkle.js?v=6aff78cb';
+import { sendFx, unpackFx } from './letterfx.js?v=6aff78cb';
 
 const KINDS = { item: ['🎁', 'Item'], poke: ['💰', 'Poké'], recruit: ['🤝', 'Recruit chance'], place: ['🧭', 'New place'] };
 export const MAIL_SCHEMA = [['title', 'Title'], ['from', 'From'], ['text', 'Letter', 'area'], ['attr', 'Roll: attribute (e.g. Insight)'], ['skill', 'Roll: skill (e.g. Alert)'],
@@ -97,19 +97,63 @@ function go(c, l, box) {
   if (slot(c.id).day === today()) return;
   const dice = Math.max(1, statVal(c, l.attr || 'Insight') + statVal(c, l.skill || 'Alert'));
   const r = pool(dice); const need = num(l.need) || 1; const ok = r.succ >= need;
-  store.set('mail/' + c.id, { day: today(), id: l.id, res: ok ? 'win' : 'lose', t: Date.now() });
+  store.set('mail/' + c.id, { day: today(), id: l.id, res: ok ? 'win' : 'lose', t: Date.now(), dice: r.dice, succ: r.succ });
   logRoll(c.nickname, `Mail — ${l.title} (${l.attr} + ${l.skill})`, r.dice, `${r.succ}/${need} success${need === 1 ? '' : 'es'} · ${ok ? rewardText(l) : 'not this time'}`);
   if (ok) {
     giveReward(c, l); markWinner(c.id, 'mail');
     store.pushLimited('log', { t: Date.now(), text: `${c.nickname} finished a mail mission: ${l.title} (${rewardText(l)}).` });
     gameSay('Pelipper', 'do', `drops off a thank-you note from ${l.from}: ${c.nickname} finished “${l.title}”!`, 'mail', c.nickname);
   }
-  $('.mail-act', box).innerHTML = resultHTML(l, ok ? 'win' : 'lose');
+  playMission(box, l, r.dice, need, ok);
 }
 
-const resultHTML = (l, res) => res === 'win'
+// Her ask 11-19 "make this more dynamic": the mission plays out instead of jumping straight to the result.
+// Pelipper swoops past, the dice tumble in one at a time (4+ = a success, glows gold), the meter fills toward
+// "need", then a stamp slams on the letter (win: reward burst; lose: a gentle shake + a thank-you note drifts up).
+const stampHTML = (res) => `<div class="mail-stamp mr-${res}">${res === 'win' ? 'DONE!' : 'TRY AGAIN TOMORROW'}</div>`;
+const diceHTML = (dice, need, shown = dice.length) => {
+  const succ = dice.slice(0, shown).filter((d) => d >= 4).length;
+  return `<div class="mail-dice">${dice.map((d, i) => `<span class="mdie ${d >= 4 ? 'hit' : d === 1 ? 'one' : ''} ${i < shown ? 'in' : ''}">${d}</span>`).join('')}</div>
+    <div class="mail-meter"><span class="mm-fill" style="width:${Math.min(100, (succ / need) * 100)}%"></span><span class="mm-text">${succ} / ${need} success${need === 1 ? '' : 'es'}</span></div>`;
+};
+
+function playMission(box, l, dice, need, ok) {
+  const act = $('.mail-act', box); const letter = $('.mail-letter', box);
+  const finish = () => {
+    if (!act.isConnected) return;
+    act.innerHTML = diceHTML(dice, need) + resultHTML(l, ok ? 'win' : 'lose', true);
+    if (letter) { letter.insertAdjacentHTML('beforeend', stampHTML(ok ? 'win' : 'lose')); letter.classList.add(ok ? 'mail-won' : 'mail-lost'); }
+    if (ok) rewardBurst(act, KINDS[l.kind]?.[0] || '🎁');
+  };
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return finish();
+  act.innerHTML = `<div class="mail-fly"><span>🐦</span></div><p class="small muted mail-wait">Pelipper is on the way…</p>${diceHTML(dice, need, 0)}`;
+  const step = Math.max(160, Math.min(380, 2200 / dice.length));
+  dice.forEach((_, i) => setTimeout(() => {
+    if (!act.isConnected) return;
+    const meter = act.querySelector('.mail-meter'); const dieRow = act.querySelector('.mail-dice');
+    const fresh = document.createElement('div'); fresh.innerHTML = diceHTML(dice, need, i + 1);
+    dieRow.children[i].replaceWith(fresh.querySelector('.mail-dice').children[i]);
+    meter.replaceWith(fresh.querySelector('.mail-meter'));
+    if (dice[i] >= 4) { const m = act.querySelector('.mail-meter'); m.classList.add('bump'); if (dice.slice(0, i + 1).filter((d) => d >= 4).length >= need) m.classList.add('full'); }
+  }, 900 + i * step));
+  setTimeout(finish, 900 + dice.length * step + 450);
+}
+
+function rewardBurst(anchor, icon) {
+  const r = anchor.getBoundingClientRect(); const layer = document.createElement('div'); layer.className = 'mburst';
+  const set = [icon, '✨', '⭐', icon, '💌'];
+  for (let i = 0; i < 36; i++) {
+    const p = document.createElement('span'); const ang = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.5; const dist = 60 + Math.random() * 180;
+    p.textContent = set[i % set.length];
+    p.style.cssText = `left:${r.left + r.width / 2}px;top:${r.top + 30}px;--dx:${Math.cos(ang) * dist}px;--dy:${Math.sin(ang) * dist}px;--fall:${160 + Math.random() * 160}px;--rot:${(Math.random() - 0.5) * 700}deg;--s:${0.8 + Math.random() * 0.9};animation-delay:${Math.random() * 0.2}s;animation-duration:${1.6 + Math.random() * 0.9}s`;
+    layer.appendChild(p);
+  }
+  document.body.appendChild(layer); setTimeout(() => layer.remove(), 3200);
+}
+
+const resultHTML = (l, res, anim = false) => `<div class="mail-res mr-${res} ${anim ? 'anim' : ''}">${res === 'win'
   ? `<div class="big">Mission done! ${KINDS[l.kind]?.[0] || '🎁'}</div><p>${l.kind === 'item' ? `${esc(l.reward)} went into your bag.` : l.kind === 'poke' ? `+${num(l.reward).toLocaleString()} Poké!` : l.kind === 'recruit' ? `You made friends with ${esc(l.reward)}! Your GM will play out the recruiting.` : `You found <b>${esc(l.reward)}</b>! Your GM will tell you what’s there.`}</p><p class="small muted">New mail arrives tomorrow.</p>`
-  : `<div class="big">Not this time…</div><p>${esc(l.fail || 'It didn’t work out today, but they thank you for trying.')}</p><p class="small muted">New mail arrives tomorrow.</p>`;
+  : `<div class="big">Not this time…</div><p>${esc(l.fail || 'It didn’t work out today, but they thank you for trying.')}</p>${anim ? `<div class="mail-thanks">💌</div>` : ''}<p class="small muted">New mail arrives tomorrow.</p>`}</div>`;
 
 export function openMailbox(c) {
   if (!c) return;
@@ -119,8 +163,8 @@ export function openMailbox(c) {
   const box = modal(`<h2>📬 Pelipper Post</h2>
     <div class="mail-tools"><button class="btn sm" id="mailnew">✏️ New mail</button>${gifts.length ? `<button class="btn alt sm" id="maildelall">🗑️ Delete all read</button>` : ''}</div>
     ${gifts.length ? `<div class="gift-notes">${gifts.map(([k, n]) => `<div class="gift-note ${fresh.has(k) ? 'new' : ''}" data-note="${esc(k)}"><span class="gn-icon">${esc(n.icon || '🎁')}</span><span class="grow"><b>${esc(n.title)}</b>${fresh.has(k) ? ' <span class="pill">New!</span>' : ''}<br><span class="small gn-text">${esc(n.text)}</span>${n.attach ? `<br><span class="small gn-att">${n.claimed ? `✔ ${esc(attachText(n.attach))} went into your bag` : `📎 ${esc(attachText(n.attach))} inside the envelope`}</span>` : ''}${n.fromId && n.fromId !== c.id && store.get('party/' + n.fromId) ? `<br><button class="btn alt sm gn-reply" data-reply="${esc(n.fromId)}">↩️ Reply</button>` : ''}</span><button class="gn-del" data-del="${esc(k)}" title="Delete this mail" aria-label="Delete this mail">🗑️</button></div>`).join('')}</div>` : ''}<p class="small muted">One letter a day for ${esc(c.nickname)}. Help out and earn a reward!</p>
-    ${l ? letterHTML(l) : '<p class="muted">No mail today.</p>'}
-    <div class="mail-act result">${!l ? '' : done ? resultHTML(letters().find((x) => x.id === s.id) || l, s.res) : '<button class="btn block" id="mailgo">Take the mission 🎲</button>'}</div>
+    ${l ? (done ? letterHTML(l).replace(/<\/div>$/, `${stampHTML(s.res)}</div>`).replace('class="mail-letter"', `class="mail-letter ${s.res === 'win' ? 'mail-won' : 'mail-lost'} still"`) : letterHTML(l)) : '<p class="muted">No mail today.</p>'}
+    <div class="mail-act result">${!l ? '' : done ? (Array.isArray(s.dice) && s.dice.length ? diceHTML(s.dice, num((letters().find((x) => x.id === s.id) || l).need) || 1) : '') + resultHTML(letters().find((x) => x.id === s.id) || l, s.res) : '<button class="btn block" id="mailgo">Take the mission 🎲</button>'}</div>
     ${gm ? `<h3 style="margin-top:16px">Letters (GM)</h3><ul class="mail-list">${letters().map((x) => `<li><span class="grow">${KINDS[x.kind]?.[0] || '🎁'} ${esc(x.title || '(untitled)')}</span><button class="btn alt sm" data-mailed="${esc(x.id)}">Edit</button></li>`).join('')}</ul>
       <button class="btn alt" id="mailadd">Add a letter</button>${done ? ' <button class="btn alt" id="mailreset">Let them try again today</button>' : ''}` : ''}`);
   box.classList.add('mail-sheet');
