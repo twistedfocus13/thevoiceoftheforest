@@ -4,7 +4,7 @@
 import webpush from 'web-push';
 
 const DB = 'https://voiceoftheforest-e071c-default-rtdb.firebaseio.com/tables/' + (process.env.TABLE || 'VOICE');
-const SITE = 'https://xrunriot-wp.github.io/thevoiceoftheforest/';
+const SITE = 'https://twistedfocus13.github.io/thevoiceoftheforest/';
 const PUBLIC = 'BKU1TFmEMnNgBd80c9auRExmRAE_nzOEYGIPtqlf_BDLi9vo_HGDKiN2UOvNi63mV4SQB4IFjh0S62Ay6TUj6RE';
 webpush.setVapidDetails(SITE, PUBLIC, process.env.VAPID_PRIVATE);
 
