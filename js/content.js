@@ -4,7 +4,7 @@
 export const LINKS = {
   site: 'https://sites.google.com/view/dungeoncrawling/home',
   roll20: 'https://app.roll20.net/join/22022215/4cbasA',
-  tabletop: 'https://xrunriot-wp.github.io/programs/tabletop/',
+  tabletop: 'https://twistedfocus13.github.io/tabletop/',
   handouts: 'https://drive.google.com/drive/folders/1e2VGoj3l5cp0Y9RJrDrtkM4shZtL23pB?usp=drive_link',
   sheet: 'https://docs.google.com/spreadsheets/d/1GK62Zcn61JNy0vdmDKp15SusSsJ0R2jaSuf_d5vJPoQ/edit?gid=311637711#gid=311637711',
   form: 'https://forms.gle/GYmxXLQ7a3rcVRoH6',
