@@ -1737,6 +1737,13 @@ a.ch-chip:hover { background: var(--navy); }
 .nursery-room:not(.is-egg) { justify-content: flex-start; min-height: 260px; }
 .nest-spot { position: absolute; left: 50%; bottom: 8px; translate: -50% 0; opacity: .95; }
 .nest-spot .nest { height: 110px; }
+/* her ask 11-26: the bed is a pixel quilt the buddy slips under (70x36 at 3x, like the old nest); the quilt-only cover sits
+   over the pet (z 4 > .pet 3) and only shows while it sleeps on the bed (.tucked, set by tuck() in nursery.js) */
+.nest-spot .bed { position: relative; width: 210px; height: 110px; }
+.nest-spot .bed img { position: absolute; left: 0; bottom: 0; width: 210px; height: 108px; image-rendering: pixelated; }
+.nest-spot.bed-cover { z-index: 4; pointer-events: none; opacity: 0; transition: opacity .25s; }
+.nursery-room.tucked .nest-spot.bed-cover { opacity: .95; }
+.nursery-room.tucked .pet:not(.guest) .pet-think { left: 78%; top: 8%; }   /* the z Z bubble beside the head, not over it */
 /* sunny-day parasol over the bed (her ask 11-01): springs up once and stays put */
 .nest-umb { position: absolute; left: 50%; bottom: 14px; width: 176px; height: 176px; translate: -50% 0; z-index: 2; image-rendering: pixelated; pointer-events: none;
   opacity: 0; scale: 1 0; transform-origin: 50% 100%; transition: opacity .2s, scale .2s; filter: drop-shadow(0 4px 0 rgba(30, 60, 0, .35)); }

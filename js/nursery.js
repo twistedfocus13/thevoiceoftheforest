@@ -7,15 +7,15 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6b039311';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6b039311';
-import { me, logRoll } from './play.js?v=6b039311';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6b039311';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6b039311';
-import { markWinner } from './sparkle.js?v=6b039311';
-import { pageMusic, visitMusic, muted, tempMusic } from './chiptune.js?v=6b039311';
-import { modal, closeModal } from './ui.js?v=6b039311';
-import { MIMIC } from './mimicdata.js?v=6b039311';
+import * as store from './store.js?v=6b0844e2';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6b0844e2';
+import { me, logRoll } from './play.js?v=6b0844e2';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6b0844e2';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6b0844e2';
+import { markWinner } from './sparkle.js?v=6b0844e2';
+import { pageMusic, visitMusic, muted, tempMusic } from './chiptune.js?v=6b0844e2';
+import { modal, closeModal } from './ui.js?v=6b0844e2';
+import { MIMIC } from './mimicdata.js?v=6b0844e2';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -136,8 +136,8 @@ const ACC = {
   song_dance: ['💿', 'Dance Party', 'song'], song_beach: ['💿', 'Beach Day', 'song'], song_kitchen: ['💿', 'Kitchen Shuffle', 'song'],
   song_march: ['💿', 'Guild March', 'song'], song_musicbox: ['💿', 'Music Box Lullaby', 'song'], song_lab: ['💿', 'Lab Groove', 'song'],
   song_caravan: ['💿', 'Caravan Road', 'song'], song_casino: ['💿', 'Casino Swing', 'song'], song_battle: ['💿', 'Battle Theme', 'song'],
-  bed_moss: ['🛏️', 'Mossy Nest', 'bed', 'hue-rotate(55deg) saturate(1.4)'], bed_cloud: ['☁️', 'Cloud Cushion', 'bed', 'saturate(.15) brightness(1.55)'],
-  bed_berry: ['🫐', 'Berry Basket', 'bed', 'hue-rotate(-75deg) saturate(1.5)'], bed_sunset: ['🌅', 'Sunset Nest', 'bed', 'hue-rotate(-25deg) saturate(2.2)'],
+  bed_moss: ['🛏️', 'Mossy Blanket', 'bed', 'hue-rotate(100deg) saturate(1.1)'], bed_cloud: ['☁️', 'Cloud Cushion', 'bed', 'saturate(.15) brightness(1.55)'],
+  bed_berry: ['🫐', 'Berry Quilt', 'bed', 'hue-rotate(-75deg) saturate(1.5)'], bed_sunset: ['🌅', 'Sunset Blanket', 'bed', 'hue-rotate(-25deg) saturate(2.2)'],
   bed_star: ['🌙', 'Starry Bed', 'bed', 'hue-rotate(185deg) brightness(.75) saturate(1.4)'],
 };
 const accFilter = (k) => (ACC[k]?.[3] === 'rainbow' ? '' : ACC[k]?.[3] || '');
@@ -147,7 +147,7 @@ const accIcon = (k) => (ACC[k][0].endsWith('.png') ? `<img class="acc-img" src="
 const umbPic = (k) => `assets/nursery/parasol${ACC[k]?.[2] === 'umbrella' ? '_' + k.slice(4) : ''}.png`;
 const isUmb = (k) => ACC[k]?.[2] === 'umbrella';
 const accShow = (k, cls) => (isUmb(k) ? `<span class="${cls} umb-pic"><img class="acc-img" src="${umbPic(k)}" alt="${esc(ACC[k][1])}"></span>`
-  : `<span class="${cls} ${ACC[k][3] === 'rainbow' ? 'rainbow' : ''}" style="${ACC[k][2] !== 'toy' && ACC[k][3] ? `filter:${accFilter(k)}` : ''}">${ACC[k][2] === 'bed' ? '🪺' : accIcon(k)}</span>`);
+  : `<span class="${cls} ${ACC[k][3] === 'rainbow' ? 'rainbow' : ''}" style="${ACC[k][2] !== 'toy' && ACC[k][3] ? `filter:${accFilter(k)}` : ''}">${ACC[k][2] === 'bed' ? `<img class="acc-img" src="assets/nursery/blanket_icon.png" alt="${esc(ACC[k][1])}">` : accIcon(k)}</span>`);
 // the boombox has its own slot (an older save may still have it as the toy)
 const boomOf = (b) => (b?.wear?.boombox || (b?.wear?.toy === 'toy_boombox' ? 'toy_boombox' : null));
 const toyHTML = (b) => (ACC[b?.wear?.toy] && b.wear.toy !== 'toy_boombox' ? `<span class="prop ball toy">${accIcon(b.wear.toy)}</span>` : '<img class="prop ball" src="assets/nursery/ball.png" alt="">');
@@ -202,6 +202,7 @@ const WALK_SPOTS = [
 // happy, naps at night, shows a thought bubble when it needs something, and acts out each care action:
 // feed = a berry drops in and it walks over to eat it; play = it chases a bouncing ball; bath = bubbles, then a shake-off.
 // her ask 10-29: the buddy grows with its age, a teen is the full size
+const TUCK_COVER = 0.12;   // her ask 11-26: share of the sleeping body under the blanket
 const SIZE = [3, 1.8, 2.4, 3]; const ROW = { idle: 0, hop: 1, sleep: 2, right: 3, left: 4, eat: 5, nod: 6 };
 const wait = (ms) => new Promise((ok) => setTimeout(ok, ms));
 // tap Celebi or Beatrice while they visit (her ask 10-29): their portrait window, like the baby's
@@ -222,9 +223,11 @@ function startPet(root, b, scene, ownerId) {
   const spr = $('.baby-spr', pet); const think = $('.pet-think', pet); const cov = $('.pet-cover', pet); const props = $('.props', root); const umbEl = $('.nest-umb', root);
   const S = SIZE[b.stage] || 3; let pw; let ph; let lookSp = b.sp;
   // its look can change for a moment (a Ditto slipping up, or turning into Celebi)
+  let tucked = false; const restBottom = () => Math.round(64 - ph / 2) + 'px';
   const look = (sp) => { B = BABIES[sp]; lookSp = sp; pw = Math.round(B.cw * S); ph = Math.round(B.ch * S);
+    if (tucked) { tucked = false; roomEl.classList.remove('tucked'); }
     spr.style.cssText = `width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${sp}.png);background-size:${pw * 10}px ${ph * 7}px`;
-    pet.style.width = pw + 'px'; pet.style.bottom = Math.round(64 - ph / 2) + 'px';
+    pet.style.width = pw + 'px'; pet.style.bottom = restBottom();
     spr.innerHTML = sp === b.sp ? accHTML(b, pw, ph) : ''; };
   look(b.sp);
   // an umbrella pattern only changes the umbrella (not the blanket or tent); the sunny parasol swaps to that pattern's picture
@@ -241,6 +244,7 @@ function startPet(root, b, scene, ownerId) {
   { const on0 = !!(coverNeed(b) && stat(b, 'cover') >= 50); umbEl?.classList.toggle('show', on0 && parasol()); showCover(on0); }
   const alive = () => roomEl.isConnected;
   const row = (name, loop = true, secs = null) => {
+    if (tucked && name !== 'sleep') untuck();   // any other move = it climbs out from under the blanket
     const r = ROW[name]; const n = B.fr[r] || 1;
     spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
     spr.style.animation = 'none'; void spr.offsetWidth;
@@ -252,8 +256,23 @@ function startPet(root, b, scene, ownerId) {
   const fx = (ch, dx = 0) => { const e = document.createElement('span'); e.className = 'pet-fx'; e.textContent = ch; e.style.left = (x + pw / 2 - 12 + dx) + 'px'; roomEl.appendChild(e); setTimeout(() => e.remove(), 1400); };
   const walkTo = async (tx, sp = 75) => {
     tx = Math.max(10, Math.min(maxX(), tx)); const d = Math.abs(tx - x); if (d < 4) return;
-    row(tx > x ? 'right' : 'left'); pet.style.transition = `left ${(d / sp).toFixed(2)}s linear`; pet.style.left = tx + 'px'; x = tx;
+    row(tx > x ? 'right' : 'left'); pet.style.transition = `left ${(d / sp).toFixed(2)}s linear, bottom .35s ease`; pet.style.left = tx + 'px'; x = tx;
     await wait(d / sp * 1000); row('idle');
+  };
+  // her ask 11-26: bed time = walk onto the blanket and slip under it. Its sleeping body sits on the blanket with the
+  // top of the quilt (blanket_cover.png row 10 of 36, the hump) across it, so only the head peeks out.
+  const coverEl = $('.bed-cover', roomEl);
+  function untuck() { tucked = false; roomEl.classList.remove('tucked'); pet.style.transition = 'bottom .35s ease'; pet.style.bottom = restBottom(); }
+  const tuck = async () => {
+    if (tucked || !coverEl || !alive()) return;
+    await walkTo(roomEl.clientWidth / 2 - pw / 2, 90); if (!alive()) return;
+    const img = $('img', coverEl); const rr = roomEl.getBoundingClientRect(); const ir = img.getBoundingClientRect();
+    const hem = rr.bottom - (ir.top + ir.height * (10 / 36));           // the quilt's top edge, px up from the room floor
+    const top = (ROWTOP[lookSp] || [])[2] ?? 0.31; const bot = (BODY[lookSp] || [])[1] ?? 0.57; const h = ph * (bot - top);
+    const feet = hem - h * TUCK_COVER;                                    // the body below the hem is under the quilt
+    row('sleep', true, 1.6); tucked = true;
+    pet.style.transition = 'bottom .5s ease'; pet.style.bottom = Math.round(feet - ph * (1 - bot)) + 'px';
+    roomEl.classList.add('tucked');
   };
   const mood = () => { const k = Object.keys(needsOf(b)); return k.reduce((t, n) => t + stat(b, n), 0) / k.length; };
   const need = () => { const low = Object.keys(needsOf(b)).filter((n) => stat(b, n) < 40).sort((p, q) => stat(b, p) - stat(b, q))[0]; return low ? lab(low)[0] : ''; };
@@ -286,7 +305,7 @@ function startPet(root, b, scene, ownerId) {
     else if (d.act === 'hop') { row('hop', false); if (d.fx) fx(d.fx); cry(b, { vol: 0.6, odds: 0.35 }); await wait(750); row('idle'); }
     else if (d.act === 'nod') { row('nod', false); if (d.fx) fx(d.fx); await wait(850); row('idle'); }
     else if (d.act === 'face') { row(d.dir); await wait(d.ms || 600); row('idle'); }
-    else if (d.act === 'sleep') { row('sleep', true, 1.6); await wait(d.ms || 4000); row('idle'); }
+    else if (d.act === 'sleep') { await tuck(); row('sleep', true, 1.6); await wait(d.ms || 4000); row('idle'); }
     busy = false; d.done?.(true);
   });
   pet.hostX = () => x; pet.hostW = pw;
@@ -444,7 +463,7 @@ function startPet(root, b, scene, ownerId) {
       think.className = 'pet-think' + (ic ? ' show' : ''); think.textContent = ic;
       showCover(!!(coverNeed(b) && stat(b, 'cover') >= 50));
       if (!celebiDone && (Math.random() < (asleep(h) ? 0.004 : 0.002) || /celebi/.test(location.search) || celebiDue())) { busy = true; think.className = 'pet-think'; await celebi(); busy = false; continue; }
-      if (asleep(h)) { row('sleep', true, 1.6); think.className = 'pet-think show zz'; think.textContent = 'z Z'; await wait(5000); continue; }
+      if (asleep(h)) { await tuck(); row('sleep', true, 1.6); think.className = 'pet-think show zz'; think.textContent = 'z Z'; await wait(5000); continue; }
       // her ask 11-01: a teen Ditto sometimes turns into a copy of its owner's Pokémon for a while
       const ownMk = b.sp === 'ditto' && b.stage === 3 ? mimicKey((store.get('party') || {})[ownerId]) : '';
       if (ownMk && Math.random() < 0.05) {
@@ -461,7 +480,7 @@ function startPet(root, b, scene, ownerId) {
       if (r < 0.4) await walkTo(10 + Math.random() * maxX());
       else if (r < 0.55 && m >= 60) { row('hop', false); if (Math.random() < 0.5) fx('♪'); cry(b, { vol: 0.6, odds: 0.15 }); await wait(800); row('idle'); }
       else if (r < 0.65) { row('nod', false); await wait(900); row('idle'); }
-      else if (r < 0.72 && m >= 50) { row('sleep', true, 1.6); await wait(3500); row('idle'); }
+      else if (r < 0.72 && m >= 50) { await tuck(); row('sleep', true, 1.6); await wait(3500 + Math.random() * 2500); row('idle'); }
       else { row('idle'); await wait(1500 + Math.random() * 2000); }
     }
   };
@@ -471,6 +490,10 @@ function startPet(root, b, scene, ownerId) {
 // the egg is the Ruby & Sapphire egg sprite (her ask 10-27), assets/nursery/egg.png
 const eggHTML = (b, cls = '') => `<img class="egg ${cls}" src="assets/nursery/egg.png" alt="An egg">`;
 // her ask 10-27: the egg (and later the baby) sits in a nest on Tiny Woods grass. Nest = two layers so the front rim covers the egg.
+// her ask 11-26: 'I want this to be actually a blanket the Pokemon slips under' -> a pixel quilt bed (tools/build_blanket.py);
+// when it naps the buddy walks onto it and blanket_cover.png (the quilt alone, with a hump) is drawn over its body
+const bedStyle = (b) => (b.wear?.bed && ACC[b.wear.bed] ? `filter:${accFilter(b.wear.bed)}` : '');
+const bedHTML = (pic) => `<div class="bed"><img src="assets/nursery/${pic}.png" alt=""></div>`;
 const nestHTML = (inner) => `<div class="nest"><img class="nest-b" src="assets/nursery/nest_back.png" alt="">${inner}<img class="nest-f" src="assets/nursery/nest_front.png" alt=""></div>`;
 const nameOf = (b) => b.name || (b.stage === 0 ? 'your egg' : BABIES[b.sp]?.name || 'your buddy');
 // her ask 11-01: what a character's buddy looks like, for their base (null if they have none, or it joined the team)
@@ -710,7 +733,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html.startsWith('<img') ? html : `<span>${html}</span>`; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6b039311').catch(() => null);
+  const fz = import('./fzscene.js?v=6b0844e2').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2, 'right', false, !!c.shiny)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);
@@ -794,7 +817,7 @@ function room(c, box, anim) {
   box.innerHTML = `<div class="nursery">
     ${bea(b.recruited || b.stage === 3 ? 'proud' : low.length || cv ? 'worry' : 'happy', line)}
     <div class="nursery-room tod-${tod()} ${egg ? 'is-egg' : ''}"><div class="n-sky" aria-hidden="true"><i></i><i></i><i></i></div>${wxFxHTML(wx().key)}
-      ${egg ? nestHTML(eggHTML(b, anim === 'warm' ? 'wiggle' : '')) : `<div class="nest-spot" style="${b.wear?.bed && ACC[b.wear.bed] ? `filter:${accFilter(b.wear.bed)}` : ''}">${nestHTML('')}</div>${petHTML()}${guest ? '<div class="pet guest" id="ngpet"><span class="pet-tag"></span><span class="baby-spr"></span></div>' : ''}`}
+      ${egg ? nestHTML(eggHTML(b, anim === 'warm' ? 'wiggle' : '')) : `<div class="nest-spot" style="${bedStyle(b)}">${bedHTML('blanket')}</div>${petHTML()}<div class="nest-spot bed-cover" aria-hidden="true" style="${bedStyle(b)}">${bedHTML('blanket_cover')}</div>${guest ? '<div class="pet guest" id="ngpet"><span class="pet-tag"></span><span class="baby-spr"></span></div>' : ''}`}
       ${anim === 'grew' ? '<span class="n-burst">✨</span>' : ''}${egg && anim === 'warm' ? '<span class="n-fx">🔥</span>' : ''}
     </div>
     <div class="n-head">${egg ? '' : `<img class="sface" src="${buddyFace(b)}" alt="">`}<div class="grow"><b>${esc(b.name || (egg ? 'Mystery egg' : B.name))}</b> <span class="pill">${STAGES[b.stage]}</span>
