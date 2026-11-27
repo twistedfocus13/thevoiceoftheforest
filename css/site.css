@@ -481,6 +481,7 @@ details.gs h4 { margin: 12px 0 4px; }
 .claim.pick { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
 .claim.pick .f { flex: 1 1 220px; margin: 0; }
 .claim .row { margin-top: 6px; flex-wrap: wrap; gap: 6px; }
+.claim.bankrupt { background: rgba(20, 20, 20, .55); border-color: #ff6b81; color: #ffd6dc; }
 .lunches .row { padding: 4px 0; }
 .mprog { margin: 8px 0; padding: 8px 10px; border-radius: 10px; background: rgba(0, 0, 0, .05); }
 .mprog .bar { margin: 4px 0 6px; }

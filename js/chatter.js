@@ -1,8 +1,8 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6b0844e2';
-import { $, $$, esc, toast } from './util.js?v=6b0844e2';
-import { formFace } from './ui.js?v=6b0844e2';
+import * as store from './store.js?v=6b09d837';
+import { $, $$, esc, toast } from './util.js?v=6b09d837';
+import { formFace } from './ui.js?v=6b09d837';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 // faces: original Explorers of Sky / Rescue Team portraits; species those games don't have use PMDCollab fan portraits drawn in the same style
@@ -120,6 +120,7 @@ const LUCKY = {
   lunch: [['Guildmaster Beautifly', 'say', 'Lunch with {who}? Splendid. I have SO many questions about the fissures.'], ['Beedrill (camp caretaker)', 'say', 'Lunch with the Guildmaster, {who}! Wash your paws first.']],
   small: [['Chandelure', 'say', 'A modest win for {who}. How… sustainable.'], ['Diglett', 'say', 'Nice spin, {who}! Every bit counts!']],
   none: [['Chandelure', 'do', 'watches {who} walk away with nothing and allows herself the smallest, most satisfied flicker.'], ['Puff', 'say', 'Better luck next time, {who}! I believe in you. Mostly.']],
+  bankrupt: [['Chandelure', 'say', 'Bankrupt. Every last Poké, {who}. The house thanks you for your generosity.'], ['Maushold', 'do', 'counts {who}’s whole purse into the Lucky Den till, very slowly, humming.'], ['Diglett', 'say', 'Oof, bankrupt! {who}, want half my sandwich?']],
   double: [['Chandelure', 'say', 'Double Trouble. For {who}. Of course it is.'], ['Gemini', 'say', 'Spin it again! Spin it AGAIN!']],
 };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
@@ -147,7 +148,7 @@ export function gameSay(who, kind, text, tag, player) {
 // What the guild says when someone spins the Lucky Den. Never speaks for the spinner themselves.
 export function luckyReaction(spinner, slice, prize) {
   const n = slice.toLowerCase(); const p = (prize || '').toLowerCase();
-  const set = /double/.test(n) ? LUCKY.double : /jackpot|golden|big payday/.test(n) ? LUCKY.big : /no luck/.test(n) ? LUCKY.none
+  const set = /double/.test(n) ? LUCKY.double : /jackpot|golden|big payday/.test(n) ? LUCKY.big : /bankrupt/.test(n) ? LUCKY.bankrupt : /no luck/.test(n) ? LUCKY.none
     : /lunch/.test(p) ? LUCKY.lunch : /item/.test(p) ? LUCKY.item : LUCKY.small;
   const pl = players();
   const options = set.filter(([w]) => w.toLowerCase() !== spinner.toLowerCase() && !(w === 'Gemini' && pl.has('gemini') && spinner.toLowerCase() !== 'gemini'));

@@ -1,29 +1,29 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6b0844e2';
-import * as store from './store.js?v=6b0844e2';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6b0844e2';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6b0844e2';
-import { modal, portrait } from './ui.js?v=6b0844e2';
-import * as sheet from './sheetdata.js?v=6b0844e2';
-import { shop } from './guild.js?v=6b0844e2';
-import { merged, editContent } from './content-store.js?v=6b0844e2';
-import { logRoll, me, addTeamFx } from './play.js?v=6b0844e2';
-import { luckyReaction, gmTodo } from './chatter.js?v=6b0844e2';
-import { ranks } from './rulebook.js?v=6b0844e2';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6b0844e2';
-import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6b0844e2';
-import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6b0844e2';
-import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6b0844e2';
-import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6b0844e2';
-import { isCafe, renderCafe, cafeDue, cafeMini } from './caferush.js?v=6b0844e2';
-import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6b0844e2';
-import { isTruck, renderTruck, truckMini } from './truck.js?v=6b0844e2';
-import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6b0844e2';
-import { isBattle, renderBattle, battleMini } from './battle.js?v=6b0844e2';
-import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6b0844e2';
-import { isCarnival, renderCarnival, carnivalMini } from './carnival.js?v=6b0844e2';
-import { watchGamePage, stopGamePage } from './watch.js?v=6b0844e2';
+import { markWinner } from './sparkle.js?v=6b09d837';
+import * as store from './store.js?v=6b09d837';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6b09d837';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6b09d837';
+import { modal, portrait } from './ui.js?v=6b09d837';
+import * as sheet from './sheetdata.js?v=6b09d837';
+import { shop } from './guild.js?v=6b09d837';
+import { merged, editContent } from './content-store.js?v=6b09d837';
+import { logRoll, me, addTeamFx } from './play.js?v=6b09d837';
+import { luckyReaction, gmTodo } from './chatter.js?v=6b09d837';
+import { ranks } from './rulebook.js?v=6b09d837';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6b09d837';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6b09d837';
+import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6b09d837';
+import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6b09d837';
+import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6b09d837';
+import { isCafe, renderCafe, cafeDue, cafeMini } from './caferush.js?v=6b09d837';
+import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6b09d837';
+import { isTruck, renderTruck, truckMini } from './truck.js?v=6b09d837';
+import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6b09d837';
+import { isBattle, renderBattle, battleMini } from './battle.js?v=6b09d837';
+import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6b09d837';
+import { isCarnival, renderCarnival, carnivalMini } from './carnival.js?v=6b09d837';
+import { watchGamePage, stopGamePage } from './watch.js?v=6b09d837';
 
 export const GAMES = [
   {
@@ -87,10 +87,13 @@ export const GAMES = [
     cost: '100 Poké', source: 'https://wheelofnames.com/v6z-9aj',
     colors: ['#3EA1B6', '#0E6B8C', '#133855', '#6B669E', '#BB90C8', '#EFD8EC'],
     slices: [
-      ['Little Luck', 1.75, '25 Poké'], ['Pocket Change', 0.75, '50 Poké'], ['Lucky Find', 1, '100 Poké'], ['Big Payday', 0.75, '250 Poké'], ['Jackpot', 0.5, '500 Poké'],
+      // her ask 11-27 ('Golett is making a lot of money ... make the "losing spaces" bigger and a bankrupt section'):
+      // two No luck spaces (1.75 -> 2.25 each) + Bankrupt (lose all Poké on hand); losing share 18% -> 42%
+      ['Little Luck', 1.75, '25 Poké'], ['Pocket Change', 0.75, '50 Poké'], ['Lucky Find', 1, '100 Poké'], ['No luck', 2.25, 'Nothing this time'], ['Big Payday', 0.75, '250 Poké'], ['Jackpot', 0.5, '500 Poké'],
+      ['Bankrupt', 1.25, 'BANKRUPT: lose all the Poké you are carrying'],
       ['Guild Stash', 1, '1 free E-Rank shop item'], ['Lucky Shopper', 1, '1 free shop item worth up to 150 Poké'], ["Guild Leader's Table", 1, 'Lunch with the Guild Leader'],
       ['Double Trouble', 0.1, 'Spin again twice and keep both results'], ['Golden Paw', 0.1, '500 Poké + 1 free shop item + Lunch with the Guild Leader'],
-      ['No luck', 1.75, 'Nothing this time'],
+      ['No luck', 2.25, 'Nothing this time'],
     ],
     legendTitle: 'The Legend of Ludicolo: “The Ludicolo Incident”',
     legend: `Nobody is completely sure how it happened.
@@ -118,6 +121,7 @@ And Chandelure quietly turns the Lucky Den wheel so that the Golden Paw faces th
       ['Double Trouble', 'chaos', 'Metronome Surge: spin Gemini’s Metronome wheel right now and apply that too.'],
       ['Golden Paw', 'good', 'Golden Wag: spin again for free and keep both prizes.'],
       ['No luck', 'chaos', 'Second Wag: spin again for free, but if it’s No luck again Gemini is Confused for the next fight.'],
+      ['Bankrupt', 'bad', 'Empty Pockets: Chandelure takes every last Poké, and Gemini’s next spin this session costs 200 Poké.'],
     ],
   },
   {
@@ -211,7 +215,7 @@ function drawWheel(cv, g, rot) {
   x.clearRect(0, 0, S, S); x.save(); x.translate(S / 2, S / 2); x.rotate(rot);
   let a = 0;
   g.slices.forEach(([n, w], i) => {
-    const da = (w / total) * Math.PI * 2; const col = g.colors[i % g.colors.length];
+    const da = (w / total) * Math.PI * 2; const col = /^bankrupt$/i.test(n) ? '#141414' : g.id === 'lucky-den' && /^no luck$/i.test(n) ? '#5b6270' : g.colors[i % g.colors.length];
     x.beginPath(); x.moveTo(0, 0); x.arc(0, 0, R, a, a + da); x.closePath(); x.fillStyle = col; x.fill();
     x.strokeStyle = 'rgba(255,255,255,.6)'; x.lineWidth = 2; x.stroke();
     if (da > 0.12) {
@@ -350,6 +354,13 @@ export function renderGames(main, [arg, sub]) {
       if (got < poke) capNote = `<p class="twist-capped">🚫 Daily limit: ${esc(g.special)} only gets <b>${got.toLocaleString()}</b> of the ${poke.toLocaleString()} Poké (max ${cap.toLocaleString()} a day).</p>`;
       poke = got;
       const cl = $('#capline', main); if (cl) cl.innerHTML = capLine(g);
+    }
+    // Bankrupt slice (her ask 11-27): the spinner loses all the Poké they are carrying
+    if (/\bbankrupt\b/i.test(n) || /\bbankrupt\b/i.test(p || '')) {
+      const had = num(((store.get('party') || {})[c.id] || c).poke);
+      if (had > 0) givePoke(c.id, -had);
+      parts.push(`<p class="claim bankrupt">💸 <b>BANKRUPT!</b> ${esc(c.nickname)} loses all ${had.toLocaleString()} Poké they were carrying.</p>`);
+      poke = 0;
     }
     if (poke) { givePoke(c.id, poke); parts.push(`<p class="claim ok">🪙 <b>+${poke.toLocaleString()} Poké</b> added to ${esc(c.nickname)}’s Poké.</p>`); }
     if (tw && isSpecial()) {
